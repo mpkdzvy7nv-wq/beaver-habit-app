@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🦫 Beaver Builder — Мобильный трекер привычек (v5)</title>
+<title>🦫 Beaver Builder — Мобильный трекер привычек (v6)</title>
 <style>
 :root{
   --bg1:#eaf4ff; --bg2:#fff7e8;
@@ -288,6 +288,31 @@ input{
 @keyframes angry{0%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}100%{transform:translateX(0)}}
 .blink{animation: blink 6s infinite}
 @keyframes blink{0%,96%,100%{transform:scaleY(1)}97%{transform:scaleY(.15)}98%{transform:scaleY(1)}}
+
+/* Micro-animations */
+@keyframes pop {0%{transform:scale(.98)} 45%{transform:scale(1.04)} 100%{transform:scale(1)}}
+@keyframes wobble {0%{transform:rotate(0)} 20%{transform:rotate(-2deg)} 40%{transform:rotate(2deg)} 60%{transform:rotate(-1deg)} 100%{transform:rotate(0)}}
+@keyframes shake {0%{transform:translateX(0)} 20%{transform:translateX(-2px)} 40%{transform:translateX(2px)} 60%{transform:translateX(-1px)} 80%{transform:translateX(1px)} 100%{transform:translateX(0)}}
+#beaverStage.hype{animation:pop .28s ease}
+#beaverStage.angry{animation:shake .28s ease}
+#beaverStage.wobble{animation:wobble .6s ease}
+
+/* Calendar */
+.calGrid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:10px}
+.calCell{border:0; border-radius:12px; padding:10px 0; font-weight:800; box-shadow:0 6px 18px rgba(0,0,0,.08); background:#fff; color:#0b1220}
+.calCell.empty{opacity:.35}
+.calCell.great{background:rgba(34,197,94,.18)}
+.calCell.ok{background:rgba(96,165,250,.18)}
+.calCell.meh{background:rgba(245,158,11,.18)}
+.calCell.bad{background:rgba(239,68,68,.18)}
+.calCell.rest{background:rgba(168,85,247,.18)}
+.calLegend{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; color:var(--muted); font-size:12px}
+.calLegend .dot{width:10px;height:10px;border-radius:999px; display:inline-block; margin-right:4px}
+.calLegend .dot.great{background:rgba(34,197,94,.5)}
+.calLegend .dot.ok{background:rgba(96,165,250,.5)}
+.calLegend .dot.meh{background:rgba(245,158,11,.5)}
+.calLegend .dot.bad{background:rgba(239,68,68,.5)}
+.calLegend .dot.rest{background:rgba(168,85,247,.5)}
 </style>
 </head>
 <body>
@@ -296,7 +321,7 @@ input{
     <div class="topbar">
       <div style="min-width:0">
         <div class="title">🦫 Beaver Builder</div>
-        <div class="sub" id="subline">мобильная версия • всё кликается</div>
+        <div class="sub" id="subline">Трекер привычек • прокачай бобра</div>
 <div class="xpbar"><div id="xpFill"></div></div>
       </div>
       <div class="stats">
@@ -429,7 +454,7 @@ input{
 
 <script>
 (function(){
-  var KEY = "beaver_habit_builder_mobile_v5";
+  var KEY = "beaver_habit_builder_mobile_v6";
   function $(s,r){ return (r||document).querySelector(s); }
   function $all(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
   function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
@@ -606,14 +631,15 @@ input{
         insuranceLeft:0, insuranceWeek:weekKey(new Date()),
         lastDay: now,
         behavior:{wins:0, misses:0, last14:[]},
-        chest:{lastOpen:""}
+        chest:{lastOpen:""}, seenGuide:false
       },
       day:{date: now, done:{}, closed:false, rest:false},
       habits: habits,
       resources:{wood:40, stone:25, nails:0, paint:0, gears:0, cookies:0, crystals:0},
       base:{buildings:b},
       gear:{owned:owned, equipped:{head:null,paws:null,body:null,legs:null,bg:null}},
-      quests:{active:null}
+      quests:{active:null},
+      logs:{}
     };
   }
 
@@ -694,23 +720,59 @@ input{
 
   // Meme generator: produces thousands (>>400)
   var MEME = (function(){
-    var a = ["ну что","итак","слушай сюда","давай-ка","короче","ситуация такая","момент истины","на связи","здравствуйте, это","пришёл ваш"];
-    var b = ["главбобр","прораб","инженер плотины","кирпич души","крановщик эмоций","шпатель мотивации","доска дисциплины","бетонный психолог","внутренний заказчик"];
-    var c = ["огурец","кот","чайник","пельмень","стул","тумбочка","вилка","шапка","творог","карандаш","петарда","пингвин","дракон","комар","моль","капибара","абрикос","клавиша"];
-    var d = ["без смысла","в смысле смысла","на вайбе","на ровном месте","как будто так и надо","с лицом «я всё понял»","в режиме «ну ладно»","в стиле «не спрашивай»","по красоте","по ГОСТу"];
-    var e = ["ставь галочку","делай микро-шаг","не торгуйся с ленью","возьми и сделай","не драматизируй","закрой день","собери добычу","не сливай серию","поймай темп","не ломайся"];
-    var f = ["и мы строим плотину","и это +XP","и это монетки","и я тебя похвалю (может быть)","и всё, ты молодец","и никто не пострадал","и мир стал чуть ровнее","и жизнь пошла"];
-    var spice = ["я не AI, я твоя совесть в каске","не нажмёшь — я запишу в журнал","я видел твои «с понедельника»","если читаешь это — ты уже согласился","я тут ради дисциплины, а не ради сюсю"];
-    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+    // Curated, меньше вариативности — больше смысла.
+    // ctx: any | praise | miss | suggest | buy | equip | build | chest | guide
+    var pool = {
+      guide:[
+        "Окей, ты тут главный, я тут прораб. Коротко: добавь привычку → отметь сегодня → закрой день → забери лут.",
+        "Добро пожаловать на стройку дисциплины. Шлем на голову, оправдания — в контейнер.",
+        "Я не ругаюсь. Я фиксирую факты. Факт №1: привычки не ставятся галочкой сами."
+      ],
+      any:[
+        "План простой: маленький шаг, потом ещё один. Бетон схватывается именно так.",
+        "Сейчас бы сделать привычку, а не вид сделать привычку.",
+        "Я за тебя не отмечу. Но могу осуждать профессионально."
+      ],
+      praise:[
+        "Вот это рабочий темп. Я бы пожал руку, но у меня лапы в деле.",
+        "Ты реально прокачиваешься. Даже я перестал моргать от уважения.",
+        "Красиво. Прям как ровный шов без соплей."
+      ],
+      miss:[
+        "Окей. День провалился. Но ты не обязан продолжать лежать лицом в бетон.",
+        "Ты пропустил — я записал. Не в блокнот, а в мотивацию на завтра.",
+        "Ладно. Разгребаем по‑строительному: без драмы, но с выводами."
+      ],
+      suggest:[
+        "Подкину идею: выбери привычку, которая улучшит жизнь, а не самооценку на 7 минут.",
+        "Хочешь новую привычку? Есть вариант: «делать чуть‑чуть, но каждый день». Скучно — работает.",
+        "Предлагаю привычку: 10 минут дела. Да, десять. Не надо драматизировать."
+      ],
+      buy:[
+        "Покупка принята. Теперь ты выглядишь как человек, который не врёт себе в глаза.",
+        "Шмотка куплена. Бобр сияет. Твоя дисциплина — пока нет, но мы работаем.",
+        "Инвестиция в стиль. На стройке мотивации это считается инфраструктурой."
+      ],
+      equip:[
+        "Сел как родной. Теперь ты выглядишь так, будто правда собираешься что-то делать.",
+        "Экипировано. Красиво. Осталось сложное — не сдаться через 3 минуты.",
+        "Шмот на месте. Моральный бонус: +10 к «ну я хотя бы попытался»."
+      ],
+      build:[
+        "Апгрейд готов. База растёт — как твой характер, если не саботировать.",
+        "Построили. Теперь ресурсы капают, как совесть в 23:40.",
+        "Стройка принята. Внутренний прораб доволен. Внешний тоже."
+      ],
+      chest:[
+        "Сундук дня открыт. Если там мусор — это не мусор, это «ресурс с историей».",
+        "О, лут. Берём. Не обсуждаем. Это твоя маленькая победа над хаосом.",
+        "Сундук выдал награду. Вселенная: «ладно, сегодня ты молодец»."
+      ]
+    };
     function line(ctx){
-      var base = pick(a)+", "+pick(b)+": "+pick(e)+" — "+pick(c)+" "+pick(d)+". "+pick(f)+".";
-      if(Math.random()<0.35) base += " "+pick(spice)+".";
-      if(ctx==="miss" && Math.random()<0.55) return pick(a)+"… пропуск. "+pick(c)+" "+pick(d)+". Я не злюсь. Я записываю.";
-      if(ctx==="praise" && Math.random()<0.55) return "Красиво. "+pick(c)+" "+pick(d)+" — и ты тоже. Продолжаем строить.";
-      if(ctx==="buy" && Math.random()<0.55) return "О, шмот. "+pick(b)+" одобряет: "+pick(c)+" "+pick(d)+". Это точно повысит уважение стройки.";
-      if(ctx==="collect" && Math.random()<0.55) return "Собираем добычу: "+pick(c)+" "+pick(d)+". Ресурсы не ждут, они копятся.";
-      if(ctx==="suggest" && Math.random()<0.55){ var s = rand(HABIT_SUGGEST); return "Идея: привычка «"+s.name+"». "+pick(c)+" "+pick(d)+". Берёшь или опять «потом»?"; }
-      return base;
+      ctx = ctx || "any";
+      var arr = pool[ctx] || pool.any;
+      return rand(arr);
     }
     return {line:line};
   })();
@@ -730,6 +792,102 @@ input{
     stage.classList.remove("hype","angry");
     if(ctx==="miss" || t==="angry") stage.classList.add("angry"); else stage.classList.add("hype");
     setTimeout(function(){ stage.classList.remove("hype","angry"); }, 520);
+  }
+
+  // ===== Guide (first run) =====
+  function maybeShowGuide(){
+    if(state.user && !state.user.seenGuide){
+      openGuide(0);
+    }
+  }
+  function openGuide(step){
+    var steps = [
+      {t:"1/4 Быстрый старт", b:"Добавь 1–3 привычки, которые реально хочешь закрепить. Не «стать легендой», а «сделать сегодня»."},
+      {t:"2/4 Отметки", b:"В разделе «Сегодня» отмечай выполненное. Каждая галочка даёт опыт и монеты."},
+      {t:"3/4 Закрытие дня", b:"Закрывай день — это начисляет награды и ведёт статистику. Пропуски тоже считаем (без истерик)."},
+      {t:"4/4 Прокачка", b:"Трать ресурсы на базу и шмот. Шмот даёт бонусы. База даёт ресурсы каждый день."}
+    ];
+    step = clamp(step, 0, steps.length-1);
+    var s = steps[step];
+    openModal(
+      '<div class="h"><h3>📌 '+s.t+'</h3><div class="muted">гайд можно открыть позже в «Профиле»</div></div>'+
+      '<div class="note" style="margin-top:10px">'+escapeHtml(s.b)+'</div>'+
+      '<div class="sep"></div>'+
+      '<div class="btnRow">'+
+        '<button type="button" class="btn blue" data-act="guideNext" data-step="'+step+'">'+(step<steps.length-1?'Дальше':'Готово')+'</button>'+
+        '<button type="button" class="btn" data-act="guideSkip">Пропустить</button>'+
+      '</div>'
+    );
+    speak("guide");
+  }
+
+  // ===== Logs + calendar =====
+  function ensureLogs(){ if(!state.logs) state.logs = {}; }
+  function logTodayPreview(){
+    ensureLogs();
+    var list = activeHabits();
+    var done = state.day.done || {};
+    var doneN=0;
+    for(var k in done) if(done[k]) doneN++;
+    state.logs[state.day.date] = state.logs[state.day.date] || {date:state.day.date};
+    state.logs[state.day.date].preview = true;
+    state.logs[state.day.date].done = doneN;
+    state.logs[state.day.date].total = list.length;
+    state.logs[state.day.date].rest = !!state.day.rest;
+    state.logs[state.day.date].closed = !!state.day.closed;
+  }
+  function calTone(e){
+    if(!e) return "empty";
+    if(e.rest) return "rest";
+    if(!e.total) return "empty";
+    if(e.closed && e.done===0) return "bad";
+    var s = e.done/e.total;
+    if(s>=0.85) return "great";
+    if(s>=0.45) return "ok";
+    return "meh";
+  }
+  function renderCalendarCompact(){
+    ensureLogs();
+    logTodayPreview();
+    var today = localISODate();
+    var d0 = new Date(today+"T00:00:00");
+    var cells=[];
+    for(var i=27;i>=0;i--){
+      var d = new Date(d0); d.setDate(d.getDate()-i);
+      var iso = isoDate(d);
+      var e = state.logs[iso];
+      var tone = calTone(e);
+      var lab = String(d.getDate());
+      cells.push('<button type="button" class="calCell '+tone+'" data-act="openDay" data-date="'+iso+'">'+lab+'</button>');
+    }
+    return (
+      '<div class="sep"></div>'+
+      '<div class="h"><h3>Календарь (28 дней)</h3><div class="muted">тапни день — статистика</div></div>'+
+      '<div class="calGrid">'+cells.join("")+'</div>'+
+      '<div class="calLegend">'+
+        '<span class="dot great"></span><span>топ</span>'+
+        '<span class="dot ok"></span><span>норм</span>'+
+        '<span class="dot meh"></span><span>так себе</span>'+
+        '<span class="dot bad"></span><span>провал</span>'+
+        '<span class="dot rest"></span><span>отдых</span>'+
+      '</div>'
+    );
+  }
+  function openDay(date){
+    ensureLogs();
+    var e = state.logs[date];
+    if(!e){
+      return openModal('<div class="h"><h3>'+escapeHtml(date)+'</h3><div class="muted">нет данных</div></div><div class="note">В этот день ты либо не заходил, либо ещё не закрывал день. Всё норм — просто начни с сегодня.</div><div class="sep"></div><div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Ок</button></div>');
+    }
+    var total = e.total||0, done = e.done||0;
+    var pct = total? Math.round(done/total*100):0;
+    var badge = e.rest? "🛌 отдых" : (e.closed? "✅ закрыт" : "🟡 в процессе");
+    var txt = e.rest ? "Ты оформил отдых. Считается как сохранение темпа." : ("Выполнено: <b>"+done+"/"+total+"</b> ("+pct+"%).");
+    openModal(
+      '<div class="h"><h3>📅 '+escapeHtml(date)+'</h3><div class="muted">'+badge+'</div></div>'+
+      '<div class="note" style="margin-top:10px">'+txt+'</div>'+
+      '<div class="sep"></div><div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Закрыть</button></div>'
+    );
   }
 
   function ensureWeekInsurance(){
@@ -814,6 +972,8 @@ input{
 
     var result = {xp:0, coins:0, doneN:0};
     if(!asRest) result = calcDayRewards();
+    var resDoneN = asRest ? 0 : (result.doneN||0);
+    var resTotal = activeHabits().length;
 
     if(asRest){
       // rest doesn't break streak
@@ -850,6 +1010,18 @@ input{
 
     state.day.closed = true;
     state.day.rest = !!asRest;
+
+    ensureLogs();
+    state.logs[state.day.date] = {
+      date: state.day.date,
+      done: resDoneN,
+      total: resTotal,
+      closed: true,
+      rest: !!asRest,
+      xp: result.xp,
+      coins: result.coins,
+      leveled: leveled
+    };
     state.user.lastDay = today;
 
     save();
@@ -1491,8 +1663,10 @@ input{
     if(state.day.closed) return toast("День уже закрыт.");
     if(!state.day.done) state.day.done = {};
     state.day.done[id] = !state.day.done[id];
+    logTodayPreview();
     save();
     speak(state.day.done[id] ? "praise" : "any");
+    var st=$("#beaverStage"); st.classList.add("wobble"); setTimeout(function(){st.classList.remove("wobble");},650);
     renderTop();
     renderToday();
   }
@@ -1688,6 +1862,9 @@ input{
     if(act==="say") return speak("any");
     if(act==="collect") return collectAll();
     if(act==="openChest") return openChest();
+    if(act==="openDay") return openDay(el.getAttribute("data-date"));
+    if(act==="guideNext"){ var s=parseInt(el.getAttribute("data-step")||"0",10); if(s>=3){ state.user.seenGuide=true; save(); closeModal(); return; } return openGuide(s+1); }
+    if(act==="guideSkip"){ state.user.seenGuide=true; save(); return closeModal(); }
 
     if(act==="toggleHabit") return toggleHabit(el.getAttribute("data-id"));
     if(act==="closeDay") return closeDay(false);
@@ -1819,8 +1996,10 @@ document.addEventListener("click", function(e){
     ensureWeekInsurance();
     missedDayCheck();
     tickProduction();
+    logTodayPreview();
     render();
     speak("any");
+    maybeShowGuide();
     // lightweight background tick for base/prof only
     setInterval(function(){
       tickProduction();
