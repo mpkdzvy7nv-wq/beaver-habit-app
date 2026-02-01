@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🦫 Beaver Builder — трекер привычек (v9)</title>
+<title>🦫 Beaver Builder — трекер привычек (v11.1)</title>
 <style>
 :root{
   --bg1:#eaf4ff; --bg2:#fff7e8;
@@ -364,6 +364,14 @@ input{
 .calMeta{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .calMeta .box{flex:1;min-width:120px}
 
+
+  .chipRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{border:1px solid rgba(17,24,39,.12);background:rgba(255,255,255,.75);padding:10px 10px;border-radius:14px;display:flex;align-items:center;gap:8px;font-weight:800}
+  .chip small{font-weight:700;color:var(--muted)}
+  .chip.on{border-color:rgba(59,130,246,.55);box-shadow:0 10px 24px rgba(59,130,246,.12);background:rgba(219,234,254,.85)}
+  .guideCard h4{margin:0 0 8px 0}
+  .guideCard .muted{color:var(--muted);font-weight:700;font-size:13px}
+
 </style>
 </head>
 <body>
@@ -537,7 +545,7 @@ input{
 
 <script>
 (function(){
-  var KEY = "beaver_habit_builder_mobile_v7";
+  var KEY = "beaver_habit_builder_mobile_v3";
   function $(s,r){ return (r||document).querySelector(s); }
   function $all(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
   function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
@@ -573,10 +581,13 @@ input{
   ];
 
   var BUILDINGS = [
-    {id:"sawmill",  name:"Лесопилка",       icon:"🪵", produces:{wood:18},        baseCost:{coins:60,  wood:0,  metal:10}},
-    {id:"foundry",  name:"Плавильня",       icon:"🔩", produces:{metal:12},       baseCost:{coins:60,  wood:15, metal:0}},
-    {id:"yard",     name:"Строй‑двор",      icon:"🏗️", produces:{wood:10, metal:7}, baseCost:{coins:110, wood:30, metal:25}},
-    {id:"depot",    name:"Склад‑депо",      icon:"📦", produces:{wood:6,  metal:6}, baseCost:{coins:170, wood:60, metal:55}}
+    // Баланс: стоимость ↔ доход ↔ смысл. "Склад‑депо" — меньше доход, но даёт кап хранения и кап накопления в зданиях.
+    {id:"sawmill", name:"Лесопилка",  icon:"🪵", capHours:6,  produces:{wood:12},            baseCost:{coins:45,  wood:0,  metal:8}},
+    {id:"foundry", name:"Плавильня",  icon:"🔩", capHours:6,  produces:{metal:8},           baseCost:{coins:45,  wood:12, metal:0}},
+    {id:"yard",    name:"Строй‑двор", icon:"🏗️", capHours:8,  produces:{wood:7, metal:5},   baseCost:{coins:95,  wood:26, metal:18}},
+    {id:"depot",   name:"Склад‑депо", icon:"📦", capHours:10, produces:{wood:4, metal:4},   baseCost:{coins:140, wood:55, metal:42},
+      special:"Увеличивает лимит хранения 🪵/🔩 и лимит накопления добычи в зданиях."
+    }
   ];
 
 
@@ -616,6 +627,20 @@ input{
     {slot:"bg", id:"g3", name:"Кран на закате",     rarity:"эпик",    cost:{coins:180, wood:35, metal:30}, perks:{coins:0.08}, desc:"+8% 🪙. Красиво, а значит — надо поддерживать серию."},
     {slot:"bg", id:"g4", name:"Ночная смена",       rarity:"эпик",    cost:{coins:260, wood:45, metal:55}, perks:{res:0.10}, desc:"+10% добычи. Тёмно, но продуктивно."},
     {slot:"bg", id:"g5", name:"Штаб‑квартира Главбобра", rarity:"легендарная", cost:{coins:420, wood:90, metal:110}, perks:{xp:0.10, coins:0.10, res:0.10}, desc:"+10% XP/🪙/добычи. Максимум «я тут главный»."}
+  ];
+
+  // Быстрый старт: готовые привычки с конкретикой (чтобы человек не думал с нуля)
+  var PRESET_HABITS = [
+    {title:"Отжимания 15 раз", emoji:"💪", diff:"medium"},
+    {title:"1.5 литра воды", emoji:"💧", diff:"easy"},
+    {title:"Чтение 15 минут", emoji:"📚", diff:"easy"},
+    {title:"Прогулка 20 минут", emoji:"🚶", diff:"easy"},
+    {title:"Пресс 3×20", emoji:"🔥", diff:"medium"},
+    {title:"План дня 5 минут", emoji:"🗒️", diff:"easy"},
+    {title:"Растяжка 10 минут", emoji:"🧘", diff:"easy"},
+    {title:"Без сладкого сегодня", emoji:"🍩🚫", diff:"hard"},
+    {title:"Лечь до 23:30", emoji:"🌙", diff:"medium"},
+    {title:"Учёба/навык 20 минут", emoji:"🧠", diff:"medium"}
   ];
 
   // Автотир по редкости (для блокировки топ-лута за серии)
@@ -713,7 +738,29 @@ input{
     return d==="easy" ? "лёгкая" : (d==="hard" ? "жёсткая" : "норм");
   }
 
-  function defaultState(){
+  
+  function addHabitFromPreset(p){
+    // не добавляем дубль по названию (грубая защита)
+    var name = (p.title||"").trim();
+    if(!name) return;
+    for(var i=0;i<state.habits.length;i++){
+      if((state.habits[i].name||"").trim().toLowerCase()===name.toLowerCase()){
+        continue;
+      }
+    }
+    var d = p.diff || "easy";
+    var r = diffRewards(d);
+    state.habits.push({
+      id: uid(),
+      emoji: p.emoji || "✅",
+      name: name,
+      diff: d,
+      xp: r.xp,
+      coins: r.coins,
+      active: true
+    });
+  }
+function defaultState(){
     var now = localISODate();
     var habits = [
       {id:uid(), emoji:"💧", name:"Вода", diff:"easy", xp:10, coins:6, active:true, createdAt:Date.now()},
@@ -1034,6 +1081,26 @@ function toast(msg){
     ];
     step = clamp(step, 0, steps.length-1);
     var s = steps[step];
+    var presetUI = "";
+    if(step===0){
+      if(!state.tmp) state.tmp = {};
+      if(!state.tmp.presetSel) state.tmp.presetSel = {};
+      var selCount = Object.keys(state.tmp.presetSel).filter(function(k){return state.tmp.presetSel[k];}).length;
+      presetUI =
+        '<div class="guideCard" style="margin-top:10px">'+
+          '<h4>Готовые привычки (выбери до 3)</h4>'+
+          '<div class="muted">Чтобы начать за 30 секунд — без выдумываний.</div>'+
+          '<div class="chipRow">'+
+            PRESET_HABITS.map(function(p,i){var on=!!state.tmp.presetSel[i]; return '<button type="button" class="chip '+(on?'on':'')+'" data-act="presetToggle" data-idx="'+i+'">'+
+              '<span>'+escapeHtml(p.emoji)+'</span><span>'+escapeHtml(p.title)+'</span>'+
+              '</button>';}).join('')+
+          '</div>'+
+          '<div class="sep"></div>'+
+          '<div class="btnRow">'+
+            '<button type="button" class="btn blue full" data-act="presetAdd">✅ Добавить выбранные ('+selCount+'/3)</button>'+
+          '</div>'+
+        '</div>';
+    }
     var dots = '<div class="dots">' + steps.map(function(_,i){return '<span class="'+(i===step?'on':'')+'"></span>';}).join('') + '</div>';
     openModal(
       '🧭 Быстрый старт • '+(step+1)+'/'+steps.length,
@@ -1161,7 +1228,12 @@ function openDay(date){
     ensureLogs();
     var e = state.logs[date];
     if(!e){
-      return openModal('<div class="h"><h3>'+escapeHtml(date)+'</h3><div class="muted">нет данных</div></div><div class="note">В этот день ты либо не заходил, либо ещё не закрывал день. Всё норм — просто начни с сегодня.</div><div class="sep"></div><div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Ок</button></div>');
+      return openModal(
+        "📅 " + escapeHtml(date),
+        '<div class="h"><div class="muted">нет данных</div></div>'
+        + '<div class="note">В этот день ты либо не заходил, либо ещё не закрывал день. Всё норм — просто начни с сегодня.</div>'
+        + '<div class="sep"></div><div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Ок</button></div>'
+      );
     }
     var total = e.total||0, done = e.done||0;
     var pct = total? Math.round(done/total*100):0;
@@ -1183,6 +1255,27 @@ function openDay(date){
     }
   }
 
+  function depotLevel(){
+    var d = state.base && state.base.buildings && state.base.buildings.depot;
+    return (d && d.level) ? d.level : 0;
+  }
+  function storageCap(kind){
+    // чтобы за пару дней не набрать "бесконечность" — делаем мягкий, но расширяемый потолок.
+    // монеты (🪙) не капаем — это награда за действия.
+    if(kind==="coins") return 1e15;
+    var dl = depotLevel();
+    // базовый кап + апгрейды депо
+    var base = 600;
+    var perLevel = 350;
+    return base + dl*perLevel;
+  }
+  function bankCapHours(building){
+    var dl = depotLevel();
+    // депо увеличивает накопление в зданиях (чтобы было приятно апгрейдить)
+    var add = dl>0 ? (2 + (dl-1)*1) : 0; // 2ч за 1 lvl, потом +1ч за уровень
+    return (building.capHours||6) + add;
+  }
+
   function tickProduction(){
     var p = sumPerks();
     var mult = 1 + (p.res || 0);
@@ -1192,21 +1285,24 @@ function openDay(date){
       if(!s || (s.level||0)<=0) continue;
       var now = Date.now();
       var last = s.lastTick || now;
-      var dt = Math.max(0, (now - last)/1000);
+      // ограничиваем оффлайн‑прыжки, чтобы экономика не ломалась.
+      var dt = Math.min(6*3600, Math.max(0, (now - last)/1000)); // максимум 6 часов за тик
       s.lastTick = now;
       var prod = b.produces;
       for(var k in prod){
         var perHour = prod[k] * (s.level||0) * mult;
         var add = perHour/3600 * dt;
         if(!s.banked) s.banked = {};
-        s.banked[k] = (s.banked[k] || 0) + add;
+        var cap = perHour * bankCapHours(b);
+        s.banked[k] = Math.min(cap, (s.banked[k] || 0) + add);
       }
     }
   }
 
   function collectAll(){
     tickProduction();
-    var got = 0;
+    var got = 0, lost = 0;
+    var overflowKinds = {};
     for(var i=0;i<BUILDINGS.length;i++){
       var b = BUILDINGS[i];
       var s = state.base.buildings[b.id];
@@ -1214,14 +1310,35 @@ function openDay(date){
       for(var k in s.banked){
         var amt = Math.floor(s.banked[k] || 0);
         if(amt<=0) continue;
-        state.resources[k] = (state.resources[k] || 0) + amt;
-        s.banked[k] -= amt;
-        got += amt;
+
+        var cap = storageCap(k);
+        var cur = state.resources[k] || 0;
+        var add = Math.min(amt, Math.max(0, cap - cur));
+        var spill = amt - add;
+
+        if(add>0){
+          state.resources[k] = cur + add;
+          got += add;
+        }
+        if(spill>0){
+          lost += spill;
+          overflowKinds[k] = true;
+        }
+        s.banked[k] -= amt; // забираем всё из банка (лишнее считается "упало в воду")
       }
     }
     save();
-    if(got>0){ toast("Добыча собрана."); speak("collect"); }
-    else toast("Пока пусто. Пусть база поработает.");
+    if(got>0){
+      toast(lost>0 ? "Добыча собрана. Часть не влезла в склад." : "Добыча собрана.");
+      speak("collect");
+    }else{
+      toast("Пока пусто. Пусть база поработает.");
+    }
+    if(lost>0){
+      var kinds = Object.keys(overflowKinds).map(function(k){return k==="wood"?"🪵":"🔩";}).join(" ");
+      speak("overflow");
+      openModal("Склад переполнен", '<div class="note">Лимит хранения достигнут ('+kinds+').<br>Прокачай «Склад‑депо» или потрать ресурсы на апгрейды/шмот.</div><div class="sep"></div><div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Понял</button></div>');
+    }
     render();
   }
 
@@ -1531,16 +1648,16 @@ function openDay(date){
 
   // Магазин редкостей открывается за серии
   // tier 2: серия 3
-  // tier 3: серия 7 ИЛИ 3 идеальных дня
-  // tier 4: 7 идеальных дней
-  // tier 5: 14 идеальных дней
+  // tier 3: серия 7
+  // tier 4: 10 идеальных дней (подряд)
+  // tier 5: 14 идеальных дней (подряд)
   function shopTier(){
     var s = state.user.streak||0;
     var ps = state.user.perfectStreak||0;
     var t = 1;
     if(s>=3) t = 2;
-    if(s>=7 || ps>=3) t = 3;
-    if(ps>=7) t = 4;
+    if(s>=7) t = 3;
+    if(ps>=10) t = 4;
     if(ps>=14) t = 5;
     return t;
   }
@@ -1551,8 +1668,8 @@ function openDay(date){
     var t = shopTier();
     if(t>=5) return "Открыто всё. Теперь ты просто собираешь легенды.";
     if(t===1) return "До редких: серия 3 (сейчас "+s+").";
-    if(t===2) return "До эпика: серия 7 (сейчас "+s+") или 3 идеальных дня (сейчас "+ps+").";
-    if(t===3) return "До эпик+: 7 идеальных дней (сейчас "+ps+").";
+    if(t===2) return "До эпика: серия 7 (сейчас "+s+").";
+    if(t===3) return "До эпик+: 10 идеальных дней (сейчас "+ps+").";
     return "До легендарок: 14 идеальных дней (сейчас "+ps+").";
   }
 
@@ -1561,8 +1678,8 @@ function openDay(date){
     var t = shopTier();
     if(need<=t) return "";
     if(need===2) return "нужна серия 3";
-    if(need===3) return "нужна серия 7 или 3 идеал.дня";
-    if(need===4) return "нужны 7 идеал.дней";
+    if(need===3) return "нужна серия 7";
+    if(need===4) return "нужны 10 идеал.дней";
     return "нужны 14 идеал.дней";
   }
 
@@ -2328,6 +2445,43 @@ function totalPending(){
       return;
     }
     if(act==="openGuide") return openGuide(0);
+
+    if(act==="presetToggle"){
+      var idx = parseInt(el.getAttribute("data-idx")||"0",10);
+      if(!state.tmp) state.tmp = {};
+      if(!state.tmp.presetSel) state.tmp.presetSel = {};
+      var cur = !!state.tmp.presetSel[idx];
+      // максимум 3
+      if(!cur){
+        var cnt = Object.keys(state.tmp.presetSel).filter(function(k){return state.tmp.presetSel[k];}).length;
+        if(cnt>=3){ toast("Выбери максимум 3."); speak("no"); return; }
+      }
+      state.tmp.presetSel[idx] = !cur;
+      speak("pick");
+      openGuide(0);
+      return;
+    }
+    if(act==="presetAdd"){
+      if(!state.tmp) state.tmp = {};
+      var sel = state.tmp.presetSel || {};
+      var idxs = Object.keys(sel).filter(function(k){return sel[k];}).map(function(k){return parseInt(k,10);});
+      if(idxs.length===0){ toast("Выбери хотя бы одну."); speak("no"); return; }
+      // добавляем как привычки
+      for(var i=0;i<idxs.length;i++){
+        var p = PRESET_HABITS[idxs[i]];
+        if(!p) continue;
+        addHabitFromPreset(p);
+      }
+      state.tmp.presetSel = {};
+      save();
+      speak("nice");
+      closeModal();
+      setTab("today");
+      toast("Привычки добавлены. Погнали.");
+      render();
+      return;
+    }
+
 
     // Calendar day details
     if(act==="openDay") return openDay(el.getAttribute("data-date"));
