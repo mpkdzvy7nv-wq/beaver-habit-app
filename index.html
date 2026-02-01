@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🦫 Beaver Builder — Мобильный трекер привычек (v6)</title>
+<title>🦫 Beaver Builder — Мобильный трекер привычек (v7)</title>
 <style>
 :root{
   --bg1:#eaf4ff; --bg2:#fff7e8;
@@ -313,6 +313,56 @@ input{
 .calLegend .dot.meh{background:rgba(245,158,11,.5)}
 .calLegend .dot.bad{background:rgba(239,68,68,.5)}
 .calLegend .dot.rest{background:rgba(168,85,247,.5)}
+
+/* ===== Onboarding / Guide ===== */
+.guideWrap{display:flex;flex-direction:column;gap:12px}
+.guideHero{
+  border-radius:18px;
+  padding:12px 12px;
+  background:linear-gradient(135deg, rgba(96,165,250,.18), rgba(52,211,153,.18));
+  border:1px solid rgba(17,24,39,.08);
+}
+.guideHero .t{font-weight:1100;font-size:16px;margin:0 0 6px 0}
+.guideHero .p{margin:0;color:var(--muted);font-weight:800;line-height:1.35;font-size:13px}
+.guideCard{
+  border-radius:18px;
+  padding:12px 12px;
+  background:linear-gradient(180deg,#ffffff,#f8fafc);
+  border:1px solid rgba(17,24,39,.08);
+}
+.guideCard h4{margin:0 0 8px 0;font-size:15px}
+.guideCard ul{margin:0;padding-left:18px;color:#0b1220;font-weight:900;line-height:1.35}
+.guideCard li{margin:6px 0}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:2px}
+.dots span{width:7px;height:7px;border-radius:999px;background:rgba(17,24,39,.18)}
+.dots span.on{background:rgba(59,130,246,.75)}
+/* ===== Micro interactions ===== */
+.btn{position:relative;overflow:hidden}
+.btn.rip::after{
+  content:"";
+  position:absolute;left:50%;top:50%;
+  width:10px;height:10px;border-radius:999px;
+  background:rgba(255,255,255,.55);
+  transform:translate(-50%,-50%) scale(1);
+  opacity:0;
+  animation:ripple .55s ease;
+}
+@keyframes ripple{
+  0%{opacity:.0;transform:translate(-50%,-50%) scale(.2)}
+  20%{opacity:.75}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(14)}
+}
+.habit.flash{animation:flash .45s ease}
+@keyframes flash{0%{transform:translateY(0)}30%{transform:translateY(-1px)}100%{transform:translateY(0)}}
+/* Confetti */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+.conf{position:absolute;top:-10px;width:8px;height:14px;border-radius:3px;opacity:.9;animation:confFall 1.15s linear forwards}
+@keyframes confFall{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(calc(100vh + 20px)) rotate(540deg);opacity:0.9}}
+/* ===== Calendar tab ===== */
+.calHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.calMeta{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.calMeta .box{flex:1;min-width:120px}
+
 </style>
 </head>
 <body>
@@ -356,6 +406,33 @@ input{
                   <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
                     <feDropShadow dx="0" dy="6" stdDeviation="6" flood-opacity="0.25"/>
                   </filter>
+                
+                  <linearGradient id="g_cloth" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#93c5fd"/>
+                    <stop offset="55%" stop-color="#60a5fa"/>
+                    <stop offset="100%" stop-color="#1d4ed8"/>
+                  </linearGradient>
+                  <linearGradient id="g_yellow" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#fde68a"/>
+                    <stop offset="55%" stop-color="#fbbf24"/>
+                    <stop offset="100%" stop-color="#d97706"/>
+                  </linearGradient>
+                  <linearGradient id="g_metal" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#e5e7eb"/>
+                    <stop offset="55%" stop-color="#94a3b8"/>
+                    <stop offset="100%" stop-color="#334155"/>
+                  </linearGradient>
+                  <linearGradient id="g_leather" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#d6a77a"/>
+                    <stop offset="55%" stop-color="#b97a4a"/>
+                    <stop offset="100%" stop-color="#7a4e28"/>
+                  </linearGradient>
+                  <linearGradient id="g_neon" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#a7f3d0"/>
+                    <stop offset="55%" stop-color="#34d399"/>
+                    <stop offset="100%" stop-color="#047857"/>
+                  </linearGradient>
+
                 </defs>
 
                 <!-- BG layer -->
@@ -432,6 +509,7 @@ input{
 
   <div class="nav" role="navigation" aria-label="Навигация">
     <button type="button" data-tab="today" class="active"><div class="ico">✅</div><div>Сегодня</div></button>
+    <button type="button" data-tab="calendar"><div class="ico">🗓️</div><div>Календарь</div></button>
     <button type="button" data-tab="habits"><div class="ico">🧾</div><div>Привычки</div></button>
     <button type="button" data-tab="base"><div class="ico">🏗️</div><div>База</div></button>
     <button type="button" data-tab="shop"><div class="ico">🛠️</div><div>Шмотки</div></button>
@@ -450,11 +528,13 @@ input{
   </div>
 </div>
 
+<div id="fx" aria-hidden="true"></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 (function(){
-  var KEY = "beaver_habit_builder_mobile_v6";
+  var KEY = "beaver_habit_builder_mobile_v7";
   function $(s,r){ return (r||document).querySelector(s); }
   function $all(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
   function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
@@ -665,7 +745,23 @@ input{
   }
   function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 
-  function toast(msg){
+  
+  function spawnConfetti(){
+    var fx = $("#fx");
+    if(!fx) return;
+    var W = window.innerWidth || 360;
+    var colors = ["rgba(34,197,94,.95)","rgba(96,165,250,.95)","rgba(251,191,36,.95)","rgba(244,63,94,.90)","rgba(147,51,234,.90)"];
+    for(var i=0;i<26;i++){
+      var d=document.createElement("div");
+      d.className="conf";
+      d.style.left = Math.floor(Math.random()*W) + "px";
+      d.style.background = colors[i%colors.length];
+      d.style.animationDuration = (0.9 + Math.random()*0.7).toFixed(2) + "s";
+      fx.appendChild(d);
+      setTimeout((function(el){ return function(){ if(el && el.parentNode) el.parentNode.removeChild(el); };})(d), 1800);
+    }
+  }
+function toast(msg){
     var t = $("#toast");
     t.textContent = msg;
     t.classList.add("show");
@@ -802,20 +898,54 @@ input{
   }
   function openGuide(step){
     var steps = [
-      {t:"1/4 Быстрый старт", b:"Добавь 1–3 привычки, которые реально хочешь закрепить. Не «стать легендой», а «сделать сегодня»."},
-      {t:"2/4 Отметки", b:"В разделе «Сегодня» отмечай выполненное. Каждая галочка даёт опыт и монеты."},
-      {t:"3/4 Закрытие дня", b:"Закрывай день — это начисляет награды и ведёт статистику. Пропуски тоже считаем (без истерик)."},
-      {t:"4/4 Прокачка", b:"Трать ресурсы на базу и шмот. Шмот даёт бонусы. База даёт ресурсы каждый день."}
+      { t:"Добро пожаловать на стройку привычек",
+        hero:"Тут не про «новую жизнь с понедельника», а про маленькие победы каждый день.",
+        h:"1) Добавь привычки",
+        bullets:["Выбери 1–3 привычки на старт.","Делай их простыми (5–10 минут).","Эмодзи — чтобы мозгу было приятно."],
+        cta:"➕ Добавить привычку",
+        act:"openAddHabit"
+      },
+      { t:"Как играть в день",
+        hero:"Сегодня — твой чеклист. Отмечай сделанное и собирай награды.",
+        h:"2) Отмечай выполненное",
+        bullets:["Тап по тумблеру — засчиталось.","За каждую галочку: XP + монеты.","Бобр реагирует (иногда токсично, но по делу)."],
+        cta:"✅ Перейти в «Сегодня»",
+        act:"goToday"
+      },
+      { t:"Самое важное действие",
+        hero:"Без закрытия дня награды не начислятся. Это как уйти со стройки, не сдав объект.",
+        h:"3) Закрой день",
+        bullets:["Нажми «✅ Закрыть день».","Если совсем тяжко — «Отдохнуть (50%)».","Календарь показывает прогресс за 28 дней."],
+        cta:"🗓️ Открыть календарь",
+        act:"goCalendar"
+      },
+      { t:"Прокачка и шмот",
+        hero:"Шмот — это не косметика. Он даёт бонусы к XP, монетам и добыче.",
+        h:"4) Сделай бобра крутым",
+        bullets:["База приносит ресурсы каждый день.","Ресурсы → шмот.","Дорогой шмот — заметно сильнее."],
+        cta:"🛠️ Открыть шмотки",
+        act:"goShop"
+      }
     ];
     step = clamp(step, 0, steps.length-1);
     var s = steps[step];
+    var dots = '<div class="dots">' + steps.map(function(_,i){return '<span class="'+(i===step?'on':'')+'"></span>';}).join('') + '</div>';
     openModal(
-      '<div class="h"><h3>📌 '+s.t+'</h3><div class="muted">гайд можно открыть позже в «Профиле»</div></div>'+
-      '<div class="note" style="margin-top:10px">'+escapeHtml(s.b)+'</div>'+
-      '<div class="sep"></div>'+
-      '<div class="btnRow">'+
-        '<button type="button" class="btn blue" data-act="guideNext" data-step="'+step+'">'+(step<steps.length-1?'Дальше':'Готово')+'</button>'+
-        '<button type="button" class="btn" data-act="guideSkip">Пропустить</button>'+
+      '<div class="guideWrap">'+
+        '<div class="guideHero">'+
+          '<div class="t">'+escapeHtml(s.t)+'</div>'+
+          '<div class="p">'+escapeHtml(s.hero)+'</div>'+
+          dots+
+        '</div>'+
+        '<div class="guideCard">'+
+          '<h4>'+escapeHtml(s.h)+'</h4>'+
+          '<ul>'+s.bullets.map(function(b){return '<li>'+escapeHtml(b)+'</li>';}).join('')+'</ul>'+
+        '</div>'+
+        '<div class="btnRow">'+
+          '<button type="button" class="btn blue full" data-act="guideCta" data-step="'+step+'">'+escapeHtml(s.cta)+'</button>'+
+          '<button type="button" class="btn" data-act="guideNext" data-step="'+step+'">'+(step<steps.length-1?'Дальше':'Готово')+'</button>'+
+          '<button type="button" class="btn ghost" data-act="guideSkip">Пока не надо</button>'+
+        '</div>'+
       '</div>'
     );
     speak("guide");
@@ -873,7 +1003,55 @@ input{
       '</div>'
     );
   }
-  function openDay(date){
+  
+  function renderCalendar(){
+    ensureLogs();
+    logTodayPreview();
+    var today = localISODate();
+    var d0 = new Date(today+"T00:00:00");
+    var cells=[];
+    var great=0, ok=0, meh=0, bad=0, rest=0;
+    for(var i=27;i>=0;i--){
+      var d = new Date(d0); d.setDate(d.getDate()-i);
+      var iso = isoDate(d);
+      var e = state.logs[iso];
+      var tone = calTone(e);
+      if(tone==="great") great++;
+      else if(tone==="ok") ok++;
+      else if(tone==="meh") meh++;
+      else if(tone==="bad") bad++;
+      else if(tone==="rest") rest++;
+      var lab = String(d.getDate());
+      cells.push('<button type="button" class="calCell '+tone+'" data-act="openDay" data-date="'+iso+'">'+lab+'</button>');
+    }
+    var summary =
+      '<div class="calMeta">'+
+        '<div class="box"><b>'+great+'</b><span>топ</span></div>'+
+        '<div class="box"><b>'+ok+'</b><span>норм</span></div>'+
+        '<div class="box"><b>'+meh+'</b><span>так себе</span></div>'+
+        '<div class="box"><b>'+bad+'</b><span>провал</span></div>'+
+        '<div class="box"><b>'+rest+'</b><span>отдых</span></div>'+
+      '</div>';
+    var html =
+      '<div class="calHead"><h3 style="margin:0">Календарь • 28 дней</h3><div class="muted">тапни день — детали</div></div>'+
+      summary+
+      '<div class="sep"></div>'+
+      '<div class="calGrid">'+cells.join("")+'</div>'+
+      '<div class="calLegend">'+
+        '<span class="dot great"></span><span>топ</span>'+
+        '<span class="dot ok"></span><span>норм</span>'+
+        '<span class="dot meh"></span><span>так себе</span>'+
+        '<span class="dot bad"></span><span>провал</span>'+
+        '<span class="dot rest"></span><span>отдых</span>'+
+      '</div>'+
+      '<div class="sep"></div>'+
+      '<div class="btnRow">'+
+        '<button type="button" class="btn blue" data-act="goToday">✅ Сегодня</button>'+
+        '<button type="button" class="btn" data-act="openResources">📦 Ресурсы</button>'+
+      '</div>';
+    $("#panelMain").innerHTML = html;
+  }
+function openDay(date){
     ensureLogs();
     var e = state.logs[date];
     if(!e){
@@ -1306,10 +1484,10 @@ input{
     if(eq.head){
       var mapHead = {
         h1:'<path d="M46 82 Q120 28 194 82 L178 94 Q120 56 62 94 Z" fill="rgba(15,23,42,.85)"/>',
-        h2:'<path d="M44 86 Q120 26 196 86 L184 106 Q120 62 56 106 Z" fill="#fbbf24"/><rect x="50" y="92" width="140" height="14" rx="7" fill="#f59e0b"/>',
-        h3:'<path d="M42 88 Q120 24 198 88 L184 112 Q120 66 56 112 Z" fill="#fbbf24"/><rect x="48" y="96" width="144" height="14" rx="7" fill="#f59e0b"/><circle cx="190" cy="104" r="8" fill="rgba(255,255,255,.92)"/><circle cx="190" cy="104" r="4" fill="rgba(59,130,246,.75)"/>',
+        h2:'<path d="M44 86 Q120 26 196 86 L184 106 Q120 62 56 106 Z" fill="url(#g_yellow)"/><rect x="50" y="92" width="140" height="14" rx="7" fill="#f59e0b"/>',
+        h3:'<path d="M42 88 Q120 24 198 88 L184 112 Q120 66 56 112 Z" fill="url(#g_yellow)"/><rect x="48" y="96" width="144" height="14" rx="7" fill="#f59e0b"/><circle cx="190" cy="104" r="8" fill="rgba(255,255,255,.92)"/><circle cx="190" cy="104" r="4" fill="rgba(59,130,246,.75)"/>',
         h4:'<path d="M40 92 Q120 20 200 92 L184 122 Q120 72 56 122 Z" fill="#f59e0b"/><rect x="48" y="104" width="144" height="12" rx="6" fill="rgba(15,23,42,.85)"/><path d="M94 110 L146 110" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round"/>',
-        h5:'<path d="M38 94 Q120 18 202 94 L184 132 Q120 78 56 132 Z" fill="rgba(59,130,246,.85)"/><rect x="52" y="112" width="136" height="12" rx="6" fill="rgba(16,185,129,.85)"/><circle cx="120" cy="108" r="8" fill="rgba(255,255,255,.85)"/><circle cx="120" cy="108" r="4" fill="rgba(147,51,234,.75)"/>'
+        h5:'<path d="M38 94 Q120 18 202 94 L184 132 Q120 78 56 132 Z" fill="url(#g_cloth)"/><rect x="52" y="112" width="136" height="12" rx="6" fill="rgba(16,185,129,.85)"/><circle cx="120" cy="108" r="8" fill="rgba(255,255,255,.85)"/><circle cx="120" cy="108" r="4" fill="rgba(147,51,234,.75)"/>'
       };
       layers.head.innerHTML = mapHead[eq.head] || "";
     }
@@ -1371,41 +1549,56 @@ input{
     var doneCount = 0;
     for(var k in done) if(done[k]) doneCount++;
     var rewards = calcDayRewards();
-    var questHtml = "";
-    if(state.quests && state.quests.active){
-      questHtml = '<div class="sep"></div><div class="tag">🤡 Активный квест</div><div class="note" style="margin-top:8px">'+escapeHtml(state.quests.active.text)+'</div>';
-    }
-    var html =
-      '<div class="h"><h3>Сегодня • '+escapeHtml(state.day.date)+'</h3><div class="muted">'+doneCount+'/'+list.length+' отмечено</div></div>'+
-      '<div class="habits">'+
-        (list.length ? list.map(function(h){
-          var on = done[h.id] ? "on" : "";
-          return '<div class="habit">'+
-            '<div class="left">'+
-              '<div class="emoji">'+escapeHtml(h.emoji)+'</div>'+
-              '<div style="min-width:0">'+
-                '<div class="name">'+escapeHtml(h.name)+'</div>'+
-                '<div class="meta">+'+h.xp+' XP • +'+h.coins+' 🪙 • '+diffName(h.diff)+'</div>'+
-              '</div>'+
-            '</div>'+
-            '<button type="button" class="toggle '+on+'" aria-checked="'+(done[h.id]?'true':'false')+'" role="switch" data-act="toggleHabit" data-id="'+h.id+'"></button>'+
-          '</div>';
-        }).join("") : '<div class="note">У тебя нет активных привычек. Жми «+ Добавить».</div>')+
-      '</div>'+
-      '<div class="sep"></div>'+
+
+    var header =
+      '<div class="h"><h3>Сегодня • '+escapeHtml(state.day.date)+'</h3><div class="muted">'+doneCount+'/'+list.length+' отмечено</div></div>';
+
+    var emptyBlock =
+      '<div class="note">'+
+        '<b>Похоже, привычек ещё нет.</b><br>Давай добавим 1–3 штуки и начнём.'+
+        '<div class="sep"></div>'+
+        '<button type="button" class="btn blue full" data-act="openAddHabit">➕ Добавить первую привычку</button>'+
+      '</div>';
+
+    var habitList = (list.length ? list.map(function(h){
+      var on = done[h.id] ? "on" : "";
+      return '<div class="habit">'+
+        '<div class="left">'+
+          '<div class="emoji">'+escapeHtml(h.emoji)+'</div>'+
+          '<div style="min-width:0">'+
+            '<div class="name">'+escapeHtml(h.name)+'</div>'+
+            '<div class="meta">+'+h.xp+' XP • +'+h.coins+' 🪙 • '+diffName(h.diff)+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<button type="button" class="toggle '+on+'" aria-checked="'+(done[h.id]?'true':'false')+'" role="switch" data-act="toggleHabit" data-id="'+h.id+'"></button>'+
+      '</div>';
+    }).join("") : emptyBlock);
+
+    var rewardRow =
       '<div class="kpi">'+
-        '<div class="box"><b>+'+rewards.xp+' XP</b><span>если закрыть день</span></div>'+
-        '<div class="box"><b>+'+rewards.coins+' 🪙</b><span>если закрыть день</span></div>'+
+        '<div class="box"><b>+'+rewards.xp+' XP</b><span>за закрытие дня</span></div>'+
+        '<div class="box"><b>'+rewards.coins+' 🪙</b><span>за закрытие дня</span></div>'+
         '<div class="box"><b>'+(state.user.streak||0)+'</b><span>серия</span></div>'+
-      '</div>'+
+      '</div>';
+
+    var primary =
       '<div class="sep"></div>'+
-      '<div class="btnRow">'+
-        '<button type="button" class="btn blue" data-act="openAddHabit">➕ Добавить</button>'+
+      '<button type="button" class="btn primary full" data-act="closeDay">✅ Закрыть день</button>'+
+      '<div class="btnRow" style="margin-top:10px">'+
+        '<button type="button" class="btn blue" data-act="openAddHabit">➕ Привычка</button>'+
+        '<button type="button" class="btn" data-act="goCalendar">🗓️ Календарь</button>'+
         '<button type="button" class="btn warn" data-act="restToday">🛌 Отдохнуть (50%)</button>'+
-        '<button type="button" class="btn primary full" data-act="closeDay">✅ Закрыть день</button>'+
-      '</div>'+
-      questHtml;
-    $("#panelMain").innerHTML = html;
+      '</div>';
+
+    $("#panelMain").innerHTML =
+      header+
+      '<div class="sep"></div>'+
+      '<div class="tag">📋 Чеклист</div>'+
+      '<div class="habits" style="margin-top:10px">'+habitList+'</div>'+
+      '<div class="sep"></div>'+
+      '<div class="tag">🎁 Награда за день</div>'+
+      rewardRow+
+      primary;
   }
 
   function renderHabits(){
@@ -1855,70 +2048,58 @@ input{
     if(tab==="base") renderBase();
     if(tab==="shop") renderShop();
     if(tab==="me") renderMe();
+    if(tab==="calendar") renderCalendar();
   }
 
   function onAction(act, el){
+    // micro-ripple
+    try{
+      var b = (el && el.classList && el.classList.contains("btn")) ? el : safeClosest(el, ".btn");
+      if(b && b.classList){ b.classList.add("rip"); setTimeout(function(){ b.classList.remove("rip"); }, 620); }
+    }catch(_){}
+
     if(act==="closeModal") return closeModal();
     if(act==="say") return speak("any");
     if(act==="collect") return collectAll();
     if(act==="openChest") return openChest();
     if(act==="openDay") return openDay(el.getAttribute("data-date"));
-    if(act==="guideNext"){ var s=parseInt(el.getAttribute("data-step")||"0",10); if(s>=3){ state.user.seenGuide=true; save(); closeModal(); return; } return openGuide(s+1); }
+
+    if(act==="goCalendar"){ setTab("calendar"); return; }
+    if(act==="goToday"){ setTab("today"); return; }
+    if(act==="goShop"){ setTab("shop"); return; }
+
+    if(act==="guideNext"){
+      var s=parseInt(el.getAttribute("data-step")||"0",10);
+      if(s>=3){ state.user.seenGuide=true; save(); closeModal(); return; }
+      return openGuide(s+1);
+    }
     if(act==="guideSkip"){ state.user.seenGuide=true; save(); return closeModal(); }
+    if(act==="guideCta"){
+      var step=parseInt(el.getAttribute("data-step")||"0",10);
+      if(step===0){ closeModal(); return openAddHabit(null); }
+      if(step===1){ closeModal(); setTab("today"); return; }
+      if(step===2){ closeModal(); setTab("calendar"); return; }
+      if(step===3){ closeModal(); setTab("shop"); return; }
+      return;
+    }
+    if(act==="openGuide") return openGuide(0);
 
     if(act==="toggleHabit") return toggleHabit(el.getAttribute("data-id"));
     if(act==="closeDay") return closeDay(false);
     if(act==="openAddHabit") return openAddHabit(null);
     if(act==="suggestHabit") return suggestHabit();
-    if(act==="acceptSuggest") return acceptSuggest(el.getAttribute("data-emoji"), el.getAttribute("data-name"));
+    if(act==="editHabit") return openAddHabit(el.getAttribute("data-id"));
     if(act==="toggleActive") return toggleActive(el.getAttribute("data-id"));
-    if(act==="editHabit") return editHabit(el.getAttribute("data-id"));
-    if(act==="saveHabit") return saveHabit(el.getAttribute("data-id") || "");
-    if(act==="deleteHabit") return deleteHabit(el.getAttribute("data-id"));
 
-    if(act==="setDiff"){
-      var diff = el.getAttribute("data-diff");
-      $("#mBody").setAttribute("data-diff", diff);
-      $all("#mBody .chip").forEach(function(c){
-        c.classList.toggle("on", c.getAttribute("data-diff")===diff);
-      });
-      var r = diffRewards(diff);
-      $("#rewardHint").innerHTML = "Награда: <b>+"+r.xp+" XP</b> и <b>+"+r.coins+" 🪙</b>.";
-      return;
-    }
-    if(act==="pickEmoji"){
-      var emo = el.getAttribute("data-emoji");
-      $("#mBody").setAttribute("data-emoji", emo);
-      $all("#emojiPicker .emoBtn").forEach(function(b){
-        b.classList.toggle("sel", b.getAttribute("data-emoji")===emo);
-      });
-      if($("#emojiCustom")) $("#emojiCustom").value = emo;
-      return;
-    }
-
-    if(act==="slot"){
-      var slot = el.getAttribute("data-slot");
-      $all("#slotChips .chip").forEach(function(c){ c.classList.toggle("on", c===el); });
-      renderShopSlot(slot);
-      return;
-    }
-
-    if(act==="upgrade") return upgradeBuilding(el.getAttribute("data-id"));
-    if(act==="buyGear") return buyGear(el.getAttribute("data-id"));
+    if(act==="slot") return shopSlot(el.getAttribute("data-slot"), el);
+    if(act==="buy") return buyGear(el.getAttribute("data-id"));
     if(act==="equip") return equipGear(el.getAttribute("data-id"));
+    if(act==="unequip") return unequipGear(el.getAttribute("data-slot"));
+
+    if(act==="build") return buildThing(el.getAttribute("data-id"));
     if(act==="openResources") return openResources();
-
-    if(act==="export") return exportData();
-    if(act==="reset") return resetAll();
-    if(act==="confirmReset") return confirmReset();
-
-    if(act==="punish") return punish();
-    if(act==="insurance") return insurance();
-    if(act==="negotiate") return negotiate(el.getAttribute("data-cost"));
-    if(act==="questDone") return questDone();
-    if(act==="questSkip") return questSkip();
     if(act==="restToday") return restToday();
-    if(act==="negotiateToday") return negotiateToday(el.getAttribute("data-cost"));
+    if(act==="deal") return tryDeal();
   }
 
   // ==== Mobile tap handling (v5, fixed) ====
