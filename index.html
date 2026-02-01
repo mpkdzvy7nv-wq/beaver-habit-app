@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🦫 Beaver Builder — Мобильный трекер привычек (v7)</title>
+<title>🦫 Beaver Builder — трекер привычек (v9)</title>
 <style>
 :root{
   --bg1:#eaf4ff; --bg2:#fff7e8;
@@ -74,6 +74,7 @@ a{color:inherit}
 .btn.warn{background:linear-gradient(135deg,#fbbf24,#fde68a); border-color:rgba(245,158,11,.35); color:#3a2a00}
 .btn.danger{background:linear-gradient(135deg,#fb7185,#fecdd3); border-color:rgba(239,68,68,.35); color:#7f1d1d}
 .btn.ghost{background:transparent}
+.btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;filter:saturate(.8)}
 .btn.sm{padding:8px 10px;border-radius:12px;font-size:13px}
 .btn.full{width:100%}
 .btnRow{display:flex;gap:10px;flex-wrap:wrap}
@@ -371,12 +372,14 @@ input{
     <div class="topbar">
       <div style="min-width:0">
         <div class="title">🦫 Beaver Builder</div>
-        <div class="sub" id="subline">Трекер привычек • прокачай бобра</div>
+        <div class="sub" id="subline">Трекер привычек • шмот и база</div>
 <div class="xpbar"><div id="xpFill"></div></div>
       </div>
       <div class="stats">
         <div class="pill"><span id="lvlTxt">Lv 1</span> <small id="rankTxt">Саженец</small></div>
         <div class="pill">🪙 <span id="coinsTxt">0</span></div>
+        <div class="pill">🪵 <span id="woodTxt">0</span></div>
+        <div class="pill">🔩 <span id="metalTxt">0</span></div>
         <div class="pill">🔥 <span id="streakTxt">0</span></div>
       </div>
     </div>
@@ -551,14 +554,11 @@ input{
   };
 
   var RES = [
-    ["wood","🪵","Щепки"],
-    ["stone","🪨","Камень"],
-    ["nails","🧷","Гвозди"],
-    ["paint","🎨","Краска"],
-    ["gears","⚙️","Шестерёнки"],
-    ["cookies","🍪","Печеньки"],
-    ["crystals","💎","Кристаллы"]
+    ["wood","🪵","Дерево"],
+    ["metal","🔩","Металл"]
   ];
+
+
 
   var EMO = ["💧","🏃","📚","🧠","🥦","🧘","😴","🦷","🧼","🧹","📝","🎯","🚶","💪","🍎","🥛","🎧","📵","🕯️","🧩","🎹","🗣️","🌿","🧱","🛠️","📦","🧯","☀️","⏳","🧴","🧽","🛏️","🧊","🫗","🧘‍♂️"];
 
@@ -573,46 +573,67 @@ input{
   ];
 
   var BUILDINGS = [
-    {id:"sawmill", name:"Лесопилка", icon:"🪵", produces:{wood:36}, baseCost:{coins:40, wood:0, stone:10, nails:0}},
-    {id:"quarry", name:"Каменоломня", icon:"🪨", produces:{stone:22}, baseCost:{coins:40, wood:10, stone:0, nails:0}},
-    {id:"workshop", name:"Мастерская", icon:"⚙️", produces:{nails:10, gears:6}, baseCost:{coins:70, wood:30, stone:20, nails:0}},
-    {id:"paintbooth", name:"Покрасочная", icon:"🎨", produces:{paint:9}, baseCost:{coins:70, wood:20, stone:20, nails:10}},
-    {id:"bakery", name:"Бобр-пекарня", icon:"🍪", produces:{cookies:14}, baseCost:{coins:90, wood:30, stone:10, nails:14}},
-    {id:"lab", name:"Строй-лаборатория", icon:"💎", produces:{crystals:3}, baseCost:{coins:140, wood:60, stone:40, nails:35}}
+    {id:"sawmill",  name:"Лесопилка",       icon:"🪵", produces:{wood:18},        baseCost:{coins:60,  wood:0,  metal:10}},
+    {id:"foundry",  name:"Плавильня",       icon:"🔩", produces:{metal:12},       baseCost:{coins:60,  wood:15, metal:0}},
+    {id:"yard",     name:"Строй‑двор",      icon:"🏗️", produces:{wood:10, metal:7}, baseCost:{coins:110, wood:30, metal:25}},
+    {id:"depot",    name:"Склад‑депо",      icon:"📦", produces:{wood:6,  metal:6}, baseCost:{coins:170, wood:60, metal:55}}
   ];
 
+
+
   var GEAR = [
-    // HEAD 5
-    {slot:"head", id:"h1", name:"Кепка стажёра", rarity:"обычная", cost:{coins:35, wood:15}, perks:{xp:0.04}, desc:"+4% опыта. Всё ещё пахнет магазином."},
-    {slot:"head", id:"h2", name:"Каска новичка", rarity:"редкая", cost:{coins:85, wood:30, nails:10}, perks:{xp:0.08, coins:0.04}, desc:"+8% XP, +4% монет. Звук мыслей стал глуше."},
-    {slot:"head", id:"h3", name:"Каска с фонарём", rarity:"эпик", cost:{coins:160, wood:55, nails:22, gears:10}, perks:{xp:0.12, res:0.06}, desc:"+12% XP, +6% добычи. Светит даже в оправданиях."},
-    {slot:"head", id:"h4", name:"Шлем прораба", rarity:"эпик", cost:{coins:260, stone:80, nails:38, gears:18}, perks:{xp:0.16, coins:0.08, insurance:1}, desc:"+16% XP, +8% монет. 1 страховка/нед."},
-    {slot:"head", id:"h5", name:"Экзошлем Главбобра", rarity:"легендарная", cost:{coins:420, wood:120, stone:120, nails:80, gears:50, crystals:10}, perks:{xp:0.22, coins:0.12, res:0.12, insurance:2}, desc:"+22% XP, +12% монет, +12% добычи. 2 страховки/нед."},
-    // PAWS 5
-    {slot:"paws", id:"p1", name:"Перчатки работяги", rarity:"обычная", cost:{coins:30, nails:8}, perks:{coins:0.04}, desc:"+4% монет. Лайк, если не мерзнут лапы."},
-    {slot:"paws", id:"p2", name:"Краги прораба", rarity:"редкая", cost:{coins:90, nails:18, stone:20}, perks:{coins:0.08}, desc:"+8% монет. Да, я трогаю жизнь руками."},
-    {slot:"paws", id:"p3", name:"Магнитные перчатки", rarity:"эпик", cost:{coins:170, nails:30, gears:18}, perks:{res:0.08}, desc:"+8% добычи. Гвозди сами идут к тебе."},
-    {slot:"paws", id:"p4", name:"Гидроперчатки «Без оправданий»", rarity:"эпик", cost:{coins:260, paint:40, gears:28}, perks:{xp:0.14}, desc:"+14% XP. Отмывают даже прокрастинацию."},
-    {slot:"paws", id:"p5", name:"Меха-лапы Крановщика", rarity:"легендарная", cost:{coins:420, nails:70, gears:70, crystals:12}, perks:{xp:0.18, coins:0.10, res:0.10}, desc:"+18% XP, +10% монет, +10% добычи."},
-    // BODY 5
-    {slot:"body", id:"b1", name:"Жилет строителя", rarity:"обычная", cost:{coins:45, wood:20}, perks:{res:0.05}, desc:"+5% добычи. Карманы для ответственности."},
-    {slot:"body", id:"b2", name:"Куртка «Сменка»", rarity:"редкая", cost:{coins:110, wood:35, paint:10}, perks:{xp:0.07, res:0.06}, desc:"+7% XP, +6% добычи. Ветер вины не продувает."},
-    {slot:"body", id:"b3", name:"Бронежилет прораба", rarity:"эпик", cost:{coins:190, stone:60, nails:25}, perks:{insurance:1, res:0.08}, desc:"1 страховка/нед. +8% добычи. Пропуски отскакивают."},
-    {slot:"body", id:"b4", name:"Костюм инженера", rarity:"эпик", cost:{coins:290, gears:45, paint:30, nails:35}, perks:{xp:0.14, coins:0.06}, desc:"+14% XP, +6% монет. Мозг в режиме «сдача объекта»."},
-    {slot:"body", id:"b5", name:"Экзоскелет «Сдаём в срок»", rarity:"легендарная", cost:{coins:520, wood:140, stone:140, gears:90, paint:60, crystals:14}, perks:{xp:0.20, coins:0.12, res:0.12, insurance:2}, desc:"+20% XP, +12% монет, +12% добычи. 2 страховки/нед."},
-    // LEGS 5
-    {slot:"legs", id:"l1", name:"Рабочие ботинки", rarity:"обычная", cost:{coins:35, wood:15}, perks:{xp:0.04}, desc:"+4% XP. Не скользят по отмазкам."},
-    {slot:"legs", id:"l2", name:"Сапоги с усилением", rarity:"редкая", cost:{coins:120, stone:35, nails:18}, perks:{res:0.07}, desc:"+7% добычи. Слышно, как цели дрожат."},
-    {slot:"legs", id:"l3", name:"Пружинные ботинки", rarity:"эпик", cost:{coins:220, gears:28, nails:35}, perks:{xp:0.12}, desc:"+12% XP. Прыгаешь выше привычек."},
-    {slot:"legs", id:"l4", name:"Ботинки «Смена на смену»", rarity:"эпик", cost:{coins:320, gears:40, paint:26, nails:40}, perks:{xp:0.15, coins:0.06}, desc:"+15% XP, +6% монет. Не устаёшь даже морально."},
-    {slot:"legs", id:"l5", name:"Ракетные сапоги Проекта", rarity:"легендарная", cost:{coins:520, gears:110, nails:80, crystals:16}, perks:{xp:0.22, res:0.10}, desc:"+22% XP, +10% добычи. Да, это перебор. Именно поэтому кайф."},
-    // BG 5
-    {slot:"bg", id:"g1", name:"Склад досок", rarity:"обычная", cost:{coins:25, wood:25}, perks:{coins:0.03}, desc:"+3% монет. Пахнет прогрессом."},
-    {slot:"bg", id:"g2", name:"Стройплощадка", rarity:"редкая", cost:{coins:90, wood:40, stone:20}, perks:{res:0.06}, desc:"+6% добычи. Здесь даже лень работает."},
-    {slot:"bg", id:"g3", name:"Кран на закате", rarity:"эпик", cost:{coins:180, paint:25, gears:18}, perks:{xp:0.10, coins:0.06}, desc:"+10% XP, +6% монет. Романтика сдачи объекта."},
-    {slot:"bg", id:"g4", name:"Ночной мегапроект", rarity:"эпик", cost:{coins:300, gears:55, paint:40, cookies:40}, perks:{xp:0.12, res:0.10}, desc:"+12% XP, +10% добычи. Ночь, кран, дисциплина."},
-    {slot:"bg", id:"g5", name:"Космострой «Плотина-9»", rarity:"легендарная", cost:{coins:520, crystals:20, gears:90, paint:70}, perks:{xp:0.18, coins:0.10, res:0.12, insurance:1}, desc:"+18% XP, +10% монет, +12% добычи. 1 страховка/нед."}
+    // === ГОЛОВА (5) ===
+    {slot:"head", id:"h1", name:"Бандана стажёра", rarity:"обычная",  cost:{coins:30, wood:12}, perks:{xp:0.04}, desc:"+4% XP. Узел держится на честном слове."},
+    {slot:"head", id:"h2", name:"Каска новичка",   rarity:"редкая",   cost:{coins:90, wood:18, metal:14}, perks:{xp:0.08, coins:0.04}, desc:"+8% XP, +4% 🪙. Голова в безопасности, планы — нет."},
+    {slot:"head", id:"h3", name:"Каска с фонарём", rarity:"эпик",     cost:{coins:160, wood:30, metal:30}, perks:{xp:0.12, res:0.06}, desc:"+12% XP, +6% добычи. Светит даже в оправданиях."},
+    {slot:"head", id:"h4", name:"Шлем прораба",    rarity:"эпик",     cost:{coins:260, wood:45, metal:60}, perks:{xp:0.16, coins:0.08, insurance:1}, desc:"+16% XP, +8% 🪙. +1 страховка/нед."},
+    {slot:"head", id:"h5", name:"Экзо‑шлем Главбобра", rarity:"легендарная", cost:{coins:420, wood:90, metal:120}, perks:{xp:0.22, coins:0.12, res:0.12, insurance:2}, desc:"+22% XP, +12% 🪙, +12% добычи. +2 страховки/нед."},
+
+    // === ЛАПКИ (5) ===
+    {slot:"paws", id:"p1", name:"Перчатки работяги", rarity:"обычная", cost:{coins:35, metal:10}, perks:{coins:0.04}, desc:"+4% 🪙. Лайк, если лапы не мерзнут."},
+    {slot:"paws", id:"p2", name:"Молоток «по‑делу»", rarity:"редкая",  cost:{coins:95, wood:20, metal:18}, perks:{coins:0.08}, desc:"+8% 🪙. Один стук — и ты внезапно собрался."},
+    {slot:"paws", id:"p3", name:"Шуруповёрт «не сейчас»", rarity:"эпик", cost:{coins:180, wood:35, metal:40}, perks:{res:0.10}, desc:"+10% добычи. Вкручивает мотивацию без спроса."},
+    {slot:"paws", id:"p4", name:"Планшет прораба",  rarity:"эпик",     cost:{coins:280, wood:55, metal:70}, perks:{xp:0.14}, desc:"+14% XP. Тут всё расписано — кроме твоих отмазок."},
+    {slot:"paws", id:"p5", name:"Мех‑краги «ультра»", rarity:"легендарная", cost:{coins:450, wood:90, metal:140}, perks:{xp:0.10, coins:0.10, res:0.10}, desc:"+10% XP/🪙/добычи. Лапки теперь в режиме босса."},
+
+    // === ТЕЛО (5) ===
+    {slot:"body", id:"b1", name:"Майка строй‑режим", rarity:"обычная", cost:{coins:40, wood:14}, perks:{xp:0.04}, desc:"+4% XP. Воздух в майке = продуктивность в душе."},
+    {slot:"body", id:"b2", name:"Жилетка «видно из космоса»", rarity:"редкая", cost:{coins:110, wood:20, metal:16}, perks:{coins:0.06}, desc:"+6% 🪙. Если потерялся — тебя найдут."},
+    {slot:"body", id:"b3", name:"Комбинезон мастера", rarity:"эпик",   cost:{coins:210, wood:45, metal:35}, perks:{xp:0.10, res:0.06}, desc:"+10% XP, +6% добычи. Сидит как надо (в отличие от режима сна)."},
+    {slot:"body", id:"b4", name:"Куртка прораба",     rarity:"эпик",   cost:{coins:320, wood:70, metal:70}, perks:{xp:0.12, coins:0.10, insurance:1}, desc:"+12% XP, +10% 🪙. +1 страховка/нед."},
+    {slot:"body", id:"b5", name:"Экзо‑броня «строй‑бог»", rarity:"легендарная", cost:{coins:520, wood:120, metal:160}, perks:{xp:0.18, coins:0.12, res:0.12, insurance:1}, desc:"+18% XP, +12% 🪙, +12% добычи. Босс‑вибрации."},
+
+    // === НОГИ (5) ===
+    {slot:"legs", id:"l1", name:"Кеды «до магазина»", rarity:"обычная", cost:{coins:35, wood:10}, perks:{xp:0.03}, desc:"+3% XP. Тихо подошёл — тихо сделал."},
+    {slot:"legs", id:"l2", name:"Ботинки работяги",   rarity:"редкая", cost:{coins:100, wood:18, metal:18}, perks:{xp:0.06}, desc:"+6% XP. Шаги уверенные, мысли… спорно."},
+    {slot:"legs", id:"l3", name:"Берцы с носком",     rarity:"эпик",   cost:{coins:190, wood:28, metal:45}, perks:{res:0.08}, desc:"+8% добычи. Топает — и ресурсы сами идут."},
+    {slot:"legs", id:"l4", name:"Сапоги прораба",     rarity:"эпик",   cost:{coins:290, wood:45, metal:75}, perks:{xp:0.10, coins:0.06}, desc:"+10% XP, +6% 🪙. Ступил — и день закрылся."},
+    {slot:"legs", id:"l5", name:"Экзо‑боты «реактив»", rarity:"легендарная", cost:{coins:480, wood:80, metal:150}, perks:{xp:0.12, res:0.12}, desc:"+12% XP, +12% добычи. Вчерашний ты в шоке."},
+
+    // === ФОН (5) ===
+    {slot:"bg", id:"g1", name:"Двор‑стройка",       rarity:"обычная", cost:{coins:25, wood:10}, perks:{}, desc:"Просто уютно. Как будто жизнь в порядке (хаха)."},
+    {slot:"bg", id:"g2", name:"Чертёж‑сетка",       rarity:"редкая",  cost:{coins:90, wood:25}, perks:{xp:0.06}, desc:"+6% XP. Сетка дисциплины — не обсуждается."},
+    {slot:"bg", id:"g3", name:"Кран на закате",     rarity:"эпик",    cost:{coins:180, wood:35, metal:30}, perks:{coins:0.08}, desc:"+8% 🪙. Красиво, а значит — надо поддерживать серию."},
+    {slot:"bg", id:"g4", name:"Ночная смена",       rarity:"эпик",    cost:{coins:260, wood:45, metal:55}, perks:{res:0.10}, desc:"+10% добычи. Тёмно, но продуктивно."},
+    {slot:"bg", id:"g5", name:"Штаб‑квартира Главбобра", rarity:"легендарная", cost:{coins:420, wood:90, metal:110}, perks:{xp:0.10, coins:0.10, res:0.10}, desc:"+10% XP/🪙/добычи. Максимум «я тут главный»."}
   ];
+
+  // Автотир по редкости (для блокировки топ-лута за серии)
+  (function(){
+    var epicCount = {};
+    for(var i=0;i<GEAR.length;i++){
+      var it = GEAR[i];
+      if(it.rarity==="легендарная"){ it.tier = 5; continue; }
+      if(it.rarity==="редкая"){ it.tier = 2; continue; }
+      if(it.rarity==="эпик"){
+        epicCount[it.slot] = (epicCount[it.slot]||0) + 1;
+        it.tier = (epicCount[it.slot]===1) ? 3 : 4;
+        continue;
+      }
+      it.tier = 1;
+    }
+  })();
+
 
   var HABIT_SUGGEST = [
     {emoji:"💧", name:"Вода 1.5л"},
@@ -707,9 +728,9 @@ input{
     }
     var owned = {head:[],paws:[],body:[],legs:[],bg:[]};
     return {
-      v:3,
+      v:4,
       user:{
-        xp:0, level:1, coins:120, streak:0,
+        xp:0, level:1, coins:120, streak:0, perfectStreak:0,
         insuranceLeft:0, insuranceWeek:weekKey(new Date()),
         lastDay: now,
         behavior:{wins:0, misses:0, last14:[]},
@@ -717,7 +738,7 @@ input{
       },
       day:{date: now, done:{}, closed:false, rest:false},
       habits: habits,
-      resources:{wood:40, stone:25, nails:0, paint:0, gears:0, cookies:0, crystals:0},
+      resources:{wood:50, metal:25},
       base:{buildings:b},
       gear:{owned:owned, equipped:{head:null,paws:null,body:null,legs:null,bg:null}},
       quests:{active:null},
@@ -725,16 +746,65 @@ input{
     };
   }
 
-  function load(){
+  function migrateV3toV4(st){
+    // переносим прогресс со старой экономики к новой (wood + metal)
+    st.v = 4;
+
+    st.resources = st.resources || {};
+    // wood остаётся
+    var wood = Number(st.resources.wood||0);
+    // металл собираем из камня + гвоздей + шестерёнок (если были)
+    var metal = 0;
+    if(st.resources.stone) metal += Number(st.resources.stone||0);
+    if(st.resources.nails) metal += Math.floor(Number(st.resources.nails||0) * 0.75);
+    if(st.resources.gears) metal += Math.floor(Number(st.resources.gears||0) * 1.25);
+    if(st.resources.crystals) metal += Math.floor(Number(st.resources.crystals||0) * 6);
+    // гарантируем минимум, чтобы не было нуля после миграции
+    st.resources = {wood: Math.max(0, Math.floor(wood)), metal: Math.max(0, Math.floor(metal))};
+
+    // база: перенос уровней
+    st.base = st.base || {buildings:{}};
+    st.base.buildings = st.base.buildings || {};
+
+    function pickLevel(id){
+      var b = st.base.buildings[id];
+      return b && b.level ? Number(b.level) : 0;
+    }
+
+    var saw = pickLevel("sawmill");
+    var foundry = Math.max(pickLevel("quarry"), pickLevel("workshop"));
+    var yard = Math.max(pickLevel("paintbooth"), pickLevel("bakery"));
+    var depot = pickLevel("lab");
+
+    var newBuildings = {
+      sawmill:{level:saw, banked:{}},
+      foundry:{level:foundry, banked:{}},
+      yard:{level:yard, banked:{}},
+      depot:{level:depot, banked:{}}
+    };
+    st.base.buildings = newBuildings;
+
+    // шмот: оставляем то, что было (id совпадают), но чистим владение
+    st.gear = st.gear || {owned:{}, equipped:{}};
+    st.gear.owned = st.gear.owned || {};
+    st.gear.equipped = st.gear.equipped || {};
+
+    return st;
+  }
+
+function load(){
     try{
       var raw = localStorage.getItem(KEY);
       if(!raw) return defaultState();
       var st = JSON.parse(raw);
-      if(!st || st.v!==3) return defaultState();
+      if(!st || (st.v!==3 && st.v!==4)) return defaultState();
+      if(st.v===3) st = migrateV3toV4(st);
+
       // backfill missing keys safely
       if(!st.user) st.user = defaultState().user;
       if(!st.user.behavior) st.user.behavior = {wins:0, misses:0, last14:[]};
       if(!st.user.chest) st.user.chest = {lastOpen:""};
+      if(st.user.perfectStreak==null) st.user.perfectStreak = 0;
       if(!st.base || !st.base.buildings) st.base = defaultState().base;
       if(!st.gear || !st.gear.owned || !st.gear.equipped) st.gear = defaultState().gear;
       if(!st.resources) st.resources = defaultState().resources;
@@ -1188,12 +1258,19 @@ function openDay(date){
     if(!asRest) result = calcDayRewards();
     var resDoneN = asRest ? 0 : (result.doneN||0);
     var resTotal = activeHabits().length;
+    var perfect = (!asRest && resTotal>0 && result.doneN===resTotal);
+    var prevTier = shopTier();
 
     if(asRest){
       // rest doesn't break streak
     }else{
       if(result.doneN>0) state.user.streak += 1;
       else state.user.streak = 0;
+    }
+
+    if(!asRest){
+      if(perfect) state.user.perfectStreak = (state.user.perfectStreak||0) + 1;
+      else state.user.perfectStreak = 0;
     }
 
     var bh = state.user.behavior;
@@ -1209,7 +1286,7 @@ function openDay(date){
     // small daily goodies
     if(!asRest && result.doneN>0){
       state.resources.wood = (state.resources.wood||0) + Math.min(10, 2 + result.doneN*2);
-      if(Math.random()<0.35) state.resources.cookies = (state.resources.cookies||0) + 1;
+      if(Math.random()<0.35) state.resources.wood = (state.resources.wood||0) + 5;
     }
 
     // level-up
@@ -1219,7 +1296,7 @@ function openDay(date){
       state.user.level += 1;
       leveled++;
       state.user.coins += 15 + Math.floor(state.user.level/2);
-      if(Math.random()<0.12) state.resources.crystals = (state.resources.crystals||0) + 1;
+      if(Math.random()<0.12) state.resources.metal = (state.resources.metal||0) + 3;
     }
 
     state.day.closed = true;
@@ -1234,11 +1311,17 @@ function openDay(date){
       rest: !!asRest,
       xp: result.xp,
       coins: result.coins,
-      leveled: leveled
+      leveled: leveled,
+      perfect: perfect
     };
     state.user.lastDay = today;
 
     save();
+
+    var newTier = shopTier();
+    if(newTier>prevTier){
+      toast('🔓 Открылась новая редкость в магазине: '+tierName(newTier)+'!');
+    }
 
     var msg = asRest ? "День отдыха оформлен." : ("День закрыт: +" + result.xp + " XP, +" + result.coins + " 🪙.");
     toast(msg);
@@ -1438,7 +1521,62 @@ function openDay(date){
     return '<span class="lock">обычная</span>';
   }
 
-  function buyGear(id){
+  function tierName(t){
+    if(t<=1) return "обычная";
+    if(t===2) return "редкая";
+    if(t===3) return "эпик";
+    if(t===4) return "эпик+";
+    return "легендарная";
+  }
+
+  // Магазин редкостей открывается за серии
+  // tier 2: серия 3
+  // tier 3: серия 7 ИЛИ 3 идеальных дня
+  // tier 4: 7 идеальных дней
+  // tier 5: 14 идеальных дней
+  function shopTier(){
+    var s = state.user.streak||0;
+    var ps = state.user.perfectStreak||0;
+    var t = 1;
+    if(s>=3) t = 2;
+    if(s>=7 || ps>=3) t = 3;
+    if(ps>=7) t = 4;
+    if(ps>=14) t = 5;
+    return t;
+  }
+
+  function nextTierHint(){
+    var s = state.user.streak||0;
+    var ps = state.user.perfectStreak||0;
+    var t = shopTier();
+    if(t>=5) return "Открыто всё. Теперь ты просто собираешь легенды.";
+    if(t===1) return "До редких: серия 3 (сейчас "+s+").";
+    if(t===2) return "До эпика: серия 7 (сейчас "+s+") или 3 идеальных дня (сейчас "+ps+").";
+    if(t===3) return "До эпик+: 7 идеальных дней (сейчас "+ps+").";
+    return "До легендарок: 14 идеальных дней (сейчас "+ps+").";
+  }
+
+  function gearLockReason(it){
+    var need = it.tier || 1;
+    var t = shopTier();
+    if(need<=t) return "";
+    if(need===2) return "нужна серия 3";
+    if(need===3) return "нужна серия 7 или 3 идеал.дня";
+    if(need===4) return "нужны 7 идеал.дней";
+    return "нужны 14 идеал.дней";
+  }
+
+    function perkLine(p){
+    p = p || {};
+    var parts = [];
+    if(p.xp) parts.push("🧠 +" + Math.round(p.xp*100) + "%");
+    if(p.coins) parts.push("🪙 +" + Math.round(p.coins*100) + "%");
+    if(p.res) parts.push("📦 +" + Math.round(p.res*100) + "%");
+    if(p.insurance) parts.push("🛡️ +" + p.insurance + "/нед");
+    return parts.join(" • ") || "—";
+  }
+
+function buyGear(id){
     var it=null;
     for(var i=0;i<GEAR.length;i++) if(GEAR[i].id===id) it=GEAR[i];
     if(!it) return;
@@ -1475,7 +1613,7 @@ function openDay(date){
 
   function openModal(title, html){
     $("#mTitle").textContent = title;
-    $("#mBody").innerHTML = html;
+    $("#mBody").innerHTML = (html||"");
     $("#modal").classList.add("show");
   }
   function closeModal(){
@@ -1483,7 +1621,26 @@ function openDay(date){
     $("#mBody").innerHTML = "";
   }
 
-  function totalPending(){
+  function totalRatesPerHour(){
+    tickProduction();
+    var p = sumPerks();
+    var mult = 1 + (p.res||0);
+    var out = {wood:0, metal:0};
+    for(var i=0;i<BUILDINGS.length;i++){
+      var b = BUILDINGS[i];
+      var st = state.base.buildings[b.id] || {level:0};
+      var lv = st.level||0;
+      if(lv<=0) continue;
+      for(var k in b.produces){
+        var r = (b.produces[k]||0) * lv * mult;
+        if(out[k]==null) out[k]=0;
+        out[k]+=r;
+      }
+    }
+    return out;
+  }
+
+function totalPending(){
     var s=0;
     for(var i=0;i<BUILDINGS.length;i++){
       var st = state.base.buildings[BUILDINGS[i].id];
@@ -1495,71 +1652,65 @@ function openDay(date){
 
   function renderMascotLayers(){
     var eq = state.gear.equipped || {};
-    var layers = {
-      bg: $("#layer_bg"),
-      head: $("#layer_head"),
-      body: $("#layer_body"),
-      paws: $("#layer_paws"),
-      legs: $("#layer_legs")
-    };
+    var layers = { bg:$("#layer_bg"), head:$("#layer_head"), body:$("#layer_body"), paws:$("#layer_paws"), legs:$("#layer_legs") };
     for(var k in layers) layers[k].innerHTML = "";
 
-    // Background
+    // BG (5) — чуть "игровее"
     if(eq.bg){
       var mapBg = {
-        g1:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(34,197,94,.10)"/><path d="M24 190 L80 140 L120 170 L158 132 L216 190" fill="rgba(34,197,94,.16)"/>',
-        g2:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(251,191,36,.10)"/><path d="M32 196 L208 196 L170 110 L70 110 Z" fill="rgba(251,191,36,.20)"/>',
-        g3:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(59,130,246,.12)"/><circle cx="196" cy="56" r="18" fill="rgba(245,158,11,.35)"/>',
-        g4:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(17,24,39,.10)"/><rect x="22" y="22" width="196" height="196" rx="26" fill="rgba(96,165,250,.10)"/>',
-        g5:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(147,51,234,.12)"/><circle cx="60" cy="64" r="16" fill="rgba(59,130,246,.22)"/><circle cx="178" cy="172" r="22" fill="rgba(16,185,129,.16)"/>'
+        g1:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(34,197,94,.10)"/><path d="M22 188 L86 132 L132 168 L170 126 L218 188" fill="rgba(34,197,94,.18)"/><path d="M18 60 L42 60" stroke="rgba(34,197,94,.25)" stroke-width="8" stroke-linecap="round"/>',
+        g2:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(59,130,246,.10)"/><path d="M18 28 H222" stroke="rgba(255,255,255,.35)" stroke-width="2"/><path d="M18 56 H222" stroke="rgba(255,255,255,.22)" stroke-width="2"/><path d="M18 84 H222" stroke="rgba(255,255,255,.18)" stroke-width="2"/><path d="M38 10 V230" stroke="rgba(255,255,255,.16)" stroke-width="2"/><path d="M78 10 V230" stroke="rgba(255,255,255,.12)" stroke-width="2"/>',
+        g3:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(251,191,36,.10)"/><circle cx="182" cy="54" r="18" fill="rgba(244,63,94,.18)"/><path d="M60 190 H190" stroke="rgba(15,23,42,.16)" stroke-width="10" stroke-linecap="round"/><path d="M160 70 V190" stroke="rgba(15,23,42,.16)" stroke-width="10" stroke-linecap="round"/><path d="M160 70 L112 108" stroke="rgba(15,23,42,.16)" stroke-width="10" stroke-linecap="round"/>',
+        g4:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(17,24,39,.12)"/><rect x="18" y="18" width="204" height="204" rx="30" fill="rgba(96,165,250,.08)"/><circle cx="74" cy="74" r="3" fill="rgba(255,255,255,.55)"/><circle cx="154" cy="128" r="2" fill="rgba(255,255,255,.35)"/><circle cx="190" cy="78" r="2" fill="rgba(255,255,255,.35)"/>',
+        g5:'<rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(147,51,234,.12)"/><path d="M22 196 H218" stroke="rgba(255,255,255,.22)" stroke-width="10" stroke-linecap="round"/><path d="M44 52 H196" stroke="rgba(59,130,246,.18)" stroke-width="12" stroke-linecap="round"/><circle cx="62" cy="64" r="10" fill="rgba(16,185,129,.16)"/>'
       };
       layers.bg.innerHTML = mapBg[eq.bg] || "";
     }
 
-    // Head gear
+    // HEAD (5) — бандана/каска/фонарь/прораб/экзо
     if(eq.head){
       var mapHead = {
-        h1:'<path d="M46 82 Q120 28 194 82 L178 94 Q120 56 62 94 Z" fill="rgba(15,23,42,.85)"/>',
-        h2:'<path d="M44 86 Q120 26 196 86 L184 106 Q120 62 56 106 Z" fill="url(#g_yellow)"/><rect x="50" y="92" width="140" height="14" rx="7" fill="#f59e0b"/>',
-        h3:'<path d="M42 88 Q120 24 198 88 L184 112 Q120 66 56 112 Z" fill="url(#g_yellow)"/><rect x="48" y="96" width="144" height="14" rx="7" fill="#f59e0b"/><circle cx="190" cy="104" r="8" fill="rgba(255,255,255,.92)"/><circle cx="190" cy="104" r="4" fill="rgba(59,130,246,.75)"/>',
-        h4:'<path d="M40 92 Q120 20 200 92 L184 122 Q120 72 56 122 Z" fill="#f59e0b"/><rect x="48" y="104" width="144" height="12" rx="6" fill="rgba(15,23,42,.85)"/><path d="M94 110 L146 110" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round"/>',
-        h5:'<path d="M38 94 Q120 18 202 94 L184 132 Q120 78 56 132 Z" fill="url(#g_cloth)"/><rect x="52" y="112" width="136" height="12" rx="6" fill="rgba(16,185,129,.85)"/><circle cx="120" cy="108" r="8" fill="rgba(255,255,255,.85)"/><circle cx="120" cy="108" r="4" fill="rgba(147,51,234,.75)"/>'
+        h1:'<path d="M56 96 Q120 58 184 96" stroke="rgba(15,23,42,.25)" stroke-width="10" stroke-linecap="round"/><path d="M52 90 Q120 46 188 90 L172 104 Q120 74 68 104 Z" fill="url(#g_cloth)"/><path d="M150 92 C168 100 176 110 172 122 C160 114 146 108 136 110" fill="rgba(29,78,216,.55)"/>',
+        h2:'<path d="M46 96 Q120 40 194 96 L182 118 Q120 82 58 118 Z" fill="url(#g_yellow)"/><path d="M52 104 H188" stroke="rgba(15,23,42,.22)" stroke-width="6" stroke-linecap="round"/><path d="M66 100 Q120 70 174 100" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-linecap="round"/>',
+        h3:'<path d="M44 98 Q120 38 196 98 L182 122 Q120 86 58 122 Z" fill="url(#g_yellow)"/><path d="M52 108 H188" stroke="rgba(15,23,42,.22)" stroke-width="6" stroke-linecap="round"/><circle cx="186" cy="114" r="10" fill="rgba(255,255,255,.90)"/><circle cx="186" cy="114" r="5" fill="rgba(59,130,246,.70)"/><path d="M86 112 C94 104 110 104 118 112" stroke="rgba(15,23,42,.24)" stroke-width="6" stroke-linecap="round"/>',
+        h4:'<path d="M42 104 Q120 32 198 104 L182 132 Q120 94 58 132 Z" fill="rgba(15,23,42,.82)"/><path d="M54 114 H186" stroke="rgba(255,255,255,.18)" stroke-width="6" stroke-linecap="round"/><path d="M100 120 H140" stroke="rgba(251,191,36,.75)" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="104" r="6" fill="rgba(251,191,36,.85)"/>',
+        h5:'<path d="M40 106 Q120 30 200 106 L182 140 Q120 100 58 140 Z" fill="url(#g_metal)"/><path d="M64 120 Q120 92 176 120" stroke="rgba(16,185,129,.55)" stroke-width="10" stroke-linecap="round"/><circle cx="120" cy="112" r="9" fill="rgba(255,255,255,.80)"/><circle cx="120" cy="112" r="5" fill="rgba(147,51,234,.70)"/>'
       };
       layers.head.innerHTML = mapHead[eq.head] || "";
     }
 
-    // Body gear
+    // BODY (5) — одежда сидит на торсе
     if(eq.body){
       var mapBody = {
-        b1:'<path d="M54 152 Q120 196 186 152 L174 220 Q120 236 66 220 Z" fill="rgba(34,197,94,.22)"/><path d="M60 158 Q120 198 180 158" stroke="rgba(34,197,94,.40)" stroke-width="6" stroke-linecap="round"/>',
-        b2:'<path d="M52 154 Q120 204 188 154 L176 226 Q120 240 64 226 Z" fill="rgba(59,130,246,.20)"/><path d="M120 170 L120 232" stroke="rgba(15,23,42,.22)" stroke-width="3"/>',
-        b3:'<path d="M52 156 Q120 206 188 156 L176 228 Q120 242 64 228 Z" fill="rgba(15,23,42,.22)"/><path d="M78 186 L162 186" stroke="rgba(255,255,255,.45)" stroke-width="4" stroke-linecap="round"/>',
-        b4:'<path d="M50 154 Q120 208 190 154 L176 232 Q120 246 64 232 Z" fill="rgba(245,158,11,.18)"/><path d="M76 176 L164 176" stroke="rgba(15,23,42,.22)" stroke-width="3"/>',
-        b5:'<path d="M48 154 Q120 210 192 154 L176 236 Q120 252 64 236 Z" fill="rgba(147,51,234,.14)"/><path d="M64 188 L176 188" stroke="rgba(59,130,246,.30)" stroke-width="6" stroke-linecap="round"/>'
+        b1:'<path d="M62 150 Q120 194 178 150 L170 228 Q120 242 70 228 Z" fill="rgba(96,165,250,.18)"/><path d="M92 160 Q120 178 148 160" stroke="rgba(255,255,255,.35)" stroke-width="6" stroke-linecap="round"/><rect x="104" y="188" width="32" height="28" rx="10" fill="rgba(15,23,42,.10)"/>',
+        b2:'<path d="M60 148 Q120 198 180 148 L170 230 Q120 246 70 230 Z" fill="rgba(251,191,36,.22)"/><path d="M72 166 L168 166" stroke="rgba(255,255,255,.45)" stroke-width="8" stroke-linecap="round"/><path d="M72 184 L168 184" stroke="rgba(15,23,42,.14)" stroke-width="6" stroke-linecap="round"/>',
+        b3:'<path d="M58 148 Q120 202 182 148 L172 234 Q120 250 68 234 Z" fill="rgba(59,130,246,.18)"/><path d="M88 146 L104 176" stroke="rgba(15,23,42,.18)" stroke-width="10" stroke-linecap="round"/><path d="M152 146 L136 176" stroke="rgba(15,23,42,.18)" stroke-width="10" stroke-linecap="round"/><rect x="94" y="178" width="52" height="46" rx="14" fill="rgba(15,23,42,.10)"/><path d="M120 178 V224" stroke="rgba(15,23,42,.18)" stroke-width="4"/>',
+        b4:'<path d="M56 146 Q120 206 184 146 L172 238 Q120 254 68 238 Z" fill="url(#g_leather)"/><path d="M84 176 H156" stroke="rgba(255,255,255,.22)" stroke-width="8" stroke-linecap="round"/><circle cx="150" cy="196" r="6" fill="rgba(251,191,36,.70)"/><path d="M92 210 H148" stroke="rgba(15,23,42,.18)" stroke-width="8" stroke-linecap="round"/>',
+        b5:'<path d="M54 146 Q120 210 186 146 L172 242 Q120 258 68 242 Z" fill="url(#g_metal)"/><path d="M76 176 H164" stroke="rgba(16,185,129,.42)" stroke-width="8" stroke-linecap="round"/><path d="M92 198 H148" stroke="rgba(147,51,234,.35)" stroke-width="8" stroke-linecap="round"/><circle cx="120" cy="210" r="7" fill="rgba(255,255,255,.70)"/><circle cx="120" cy="210" r="4" fill="rgba(16,185,129,.70)"/>'
       };
       layers.body.innerHTML = mapBody[eq.body] || "";
     }
 
-    // Paws gear (gloves over arms)
+    // PAWS (5) — перчатки + инструмент
     if(eq.paws){
       var mapPaws = {
-        p1:'<circle cx="62" cy="160" r="12" fill="rgba(15,23,42,.18)"/><circle cx="178" cy="160" r="12" fill="rgba(15,23,42,.18)"/>',
-        p2:'<circle cx="62" cy="160" r="13" fill="rgba(245,158,11,.20)"/><circle cx="178" cy="160" r="13" fill="rgba(245,158,11,.20)"/>',
-        p3:'<circle cx="62" cy="160" r="13" fill="rgba(16,185,129,.18)"/><circle cx="178" cy="160" r="13" fill="rgba(16,185,129,.18)"/><path d="M52 160 L72 160" stroke="rgba(15,23,42,.20)" stroke-width="2"/>',
-        p4:'<circle cx="62" cy="160" r="13" fill="rgba(59,130,246,.20)"/><circle cx="178" cy="160" r="13" fill="rgba(59,130,246,.20)"/><circle cx="62" cy="160" r="4" fill="rgba(255,255,255,.75)"/><circle cx="178" cy="160" r="4" fill="rgba(255,255,255,.75)"/>',
-        p5:'<circle cx="62" cy="160" r="14" fill="rgba(147,51,234,.18)"/><circle cx="178" cy="160" r="14" fill="rgba(147,51,234,.18)"/><path d="M56 154 L68 166" stroke="rgba(59,130,246,.40)" stroke-width="3" stroke-linecap="round"/><path d="M172 154 L184 166" stroke="rgba(59,130,246,.40)" stroke-width="3" stroke-linecap="round"/>'
+        p1:'<circle cx="62" cy="160" r="14" fill="rgba(15,23,42,.16)"/><circle cx="178" cy="160" r="14" fill="rgba(15,23,42,.16)"/><path d="M52 156 H72" stroke="rgba(255,255,255,.25)" stroke-width="3" stroke-linecap="round"/>',
+        p2:'<circle cx="62" cy="160" r="14" fill="rgba(251,191,36,.16)"/><circle cx="178" cy="160" r="14" fill="rgba(251,191,36,.16)"/><path d="M178 150 V178" stroke="rgba(15,23,42,.25)" stroke-width="8" stroke-linecap="round"/><rect x="170" y="144" width="16" height="12" rx="4" fill="rgba(15,23,42,.28)"/>',
+        p3:'<circle cx="62" cy="160" r="14" fill="rgba(59,130,246,.16)"/><circle cx="178" cy="160" r="14" fill="rgba(59,130,246,.16)"/><rect x="168" y="150" width="34" height="16" rx="8" fill="rgba(15,23,42,.22)"/><rect x="198" y="154" width="10" height="8" rx="3" fill="rgba(16,185,129,.45)"/>',
+        p4:'<circle cx="62" cy="160" r="14" fill="rgba(96,165,250,.16)"/><circle cx="178" cy="160" r="14" fill="rgba(96,165,250,.16)"/><rect x="40" y="148" width="26" height="18" rx="5" fill="rgba(15,23,42,.22)"/><path d="M44 154 H62" stroke="rgba(255,255,255,.25)" stroke-width="2"/><path d="M44 160 H62" stroke="rgba(255,255,255,.18)" stroke-width="2"/>',
+        p5:'<circle cx="62" cy="160" r="15" fill="url(#g_metal)"/><circle cx="178" cy="160" r="15" fill="url(#g_metal)"/><path d="M52 160 H72" stroke="rgba(16,185,129,.45)" stroke-width="5" stroke-linecap="round"/><path d="M168 160 H188" stroke="rgba(147,51,234,.35)" stroke-width="5" stroke-linecap="round"/>'
       };
       layers.paws.innerHTML = mapPaws[eq.paws] || "";
     }
 
-    // Legs gear (boots)
+    // LEGS (5) — обувь
     if(eq.legs){
       var mapLegs = {
-        l1:'<rect x="76" y="198" width="44" height="18" rx="9" fill="rgba(15,23,42,.18)"/><rect x="120" y="198" width="44" height="18" rx="9" fill="rgba(15,23,42,.18)"/>',
-        l2:'<rect x="74" y="196" width="46" height="20" rx="10" fill="rgba(245,158,11,.18)"/><rect x="120" y="196" width="46" height="20" rx="10" fill="rgba(245,158,11,.18)"/>',
-        l3:'<rect x="72" y="194" width="48" height="22" rx="11" fill="rgba(59,130,246,.18)"/><rect x="120" y="194" width="48" height="22" rx="11" fill="rgba(59,130,246,.18)"/>',
-        l4:'<rect x="70" y="194" width="50" height="22" rx="11" fill="rgba(16,185,129,.16)"/><rect x="120" y="194" width="50" height="22" rx="11" fill="rgba(16,185,129,.16)"/>',
-        l5:'<rect x="68" y="192" width="52" height="24" rx="12" fill="rgba(147,51,234,.14)"/><rect x="120" y="192" width="52" height="24" rx="12" fill="rgba(147,51,234,.14)"/><circle cx="94" cy="190" r="4" fill="rgba(255,255,255,.70)"/><circle cx="146" cy="190" r="4" fill="rgba(255,255,255,.70)"/>'
+        l1:'<rect x="74" y="196" width="48" height="22" rx="11" fill="rgba(59,130,246,.16)"/><rect x="118" y="196" width="48" height="22" rx="11" fill="rgba(59,130,246,.16)"/><path d="M80 206 H114" stroke="rgba(255,255,255,.25)" stroke-width="3" stroke-linecap="round"/>',
+        l2:'<rect x="72" y="194" width="50" height="24" rx="12" fill="rgba(15,23,42,.16)"/><rect x="118" y="194" width="50" height="24" rx="12" fill="rgba(15,23,42,.16)"/><path d="M78 204 H112" stroke="rgba(251,191,36,.35)" stroke-width="4" stroke-linecap="round"/>',
+        l3:'<rect x="70" y="192" width="52" height="26" rx="13" fill="rgba(15,23,42,.18)"/><rect x="118" y="192" width="52" height="26" rx="13" fill="rgba(15,23,42,.18)"/><rect x="72" y="200" width="48" height="8" rx="4" fill="rgba(148,163,184,.35)"/><rect x="120" y="200" width="48" height="8" rx="4" fill="rgba(148,163,184,.35)"/>',
+        l4:'<rect x="68" y="192" width="54" height="26" rx="13" fill="rgba(251,191,36,.14)"/><rect x="118" y="192" width="54" height="26" rx="13" fill="rgba(251,191,36,.14)"/><path d="M72 192 V218" stroke="rgba(16,185,129,.25)" stroke-width="4"/><path d="M122 192 V218" stroke="rgba(16,185,129,.25)" stroke-width="4"/>',
+        l5:'<rect x="66" y="190" width="56" height="28" rx="14" fill="url(#g_metal)"/><rect x="118" y="190" width="56" height="28" rx="14" fill="url(#g_metal)"/><path d="M72 202 H116" stroke="rgba(16,185,129,.45)" stroke-width="6" stroke-linecap="round"/><path d="M124 202 H168" stroke="rgba(147,51,234,.35)" stroke-width="6" stroke-linecap="round"/>'
       };
       layers.legs.innerHTML = mapLegs[eq.legs] || "";
     }
@@ -1567,6 +1718,8 @@ function openDay(date){
 
   function renderTop(){
     $("#coinsTxt").textContent = Math.floor(state.user.coins||0);
+    $("#woodTxt").textContent = Math.floor(state.resources.wood||0);
+    $("#metalTxt").textContent = Math.floor(state.resources.metal||0);
     $("#streakTxt").textContent = state.user.streak||0;
     $("#lvlTxt").textContent = "Lv " + (state.user.level||1);
     $("#rankTxt").textContent = getRank(state.user.level||1);
@@ -1615,6 +1768,7 @@ function openDay(date){
         '<div class="box"><b>+'+rewards.xp+' XP</b><span>за закрытие дня</span></div>'+
         '<div class="box"><b>'+rewards.coins+' 🪙</b><span>за закрытие дня</span></div>'+
         '<div class="box"><b>'+(state.user.streak||0)+'</b><span>серия</span></div>'+
+        '<div class="box"><b>'+(state.user.perfectStreak||0)+'</b><span>идеально</span></div>'+
       '</div>';
 
     var primary =
@@ -1667,30 +1821,50 @@ function openDay(date){
     tickProduction();
     var p = sumPerks();
     var mult = 1 + (p.res||0);
+    var rates = totalRatesPerHour();
     var pending = totalPending();
+    var perDay = {wood:Math.round((rates.wood||0)*24), metal:Math.round((rates.metal||0)*24)};
+
+    function prodLine(obj, lv){
+      var parts=[];
+      for(var k in obj){
+        var perH = Math.round((obj[k]||0) * lv * mult);
+        if(perH<=0) continue;
+        parts.push(iconOf(k)+" "+perH+"/ч ("+Math.round(perH*24)+"/д)");
+      }
+      return parts.join(" • ") || "—";
+    }
 
     var rows = BUILDINGS.map(function(b){
       var st = state.base.buildings[b.id] || {level:0, banked:{}};
       var lv = st.level || 0;
-      var prodParts = [];
-      for(var k in b.produces){
-        var perH = Math.round(b.produces[k] * lv * mult);
-        prodParts.push(iconOf(k) + " " + perH + "/ч");
-      }
+      var nextLv = lv+1;
+      var curLine = lv>0 ? prodLine(b.produces, lv) : "—";
+      var nextLine = prodLine(b.produces, nextLv);
+
+      var cost = buildingCost(b.baseCost, Math.max(1, nextLv));
+      var costTxt = costLine(cost);
+
       var bankedParts = [];
       if(st.banked){
         for(var kk in st.banked){
-          bankedParts.push(iconOf(kk) + " " + Math.floor(st.banked[kk]||0));
+          var vv = Math.floor(st.banked[kk]||0);
+          if(vv>0) bankedParts.push(iconOf(kk) + " " + vv);
         }
       }
-      var cost = buildingCost(b.baseCost, Math.max(1, lv+1));
-      var costTxt = costLine(cost);
+
+      var desc = (lv>0)
+        ? ('Сейчас: <b>'+escapeHtml(curLine)+'</b><br><span class="muted">След. ур.: '+escapeHtml(nextLine)+'</span>')
+        : ('Купи и запусти производство: <b>'+escapeHtml(nextLine)+'</b>');
+      var foot = (lv>0)
+        ? ('Накоплено: '+escapeHtml((bankedParts.join(" • ")||"0"))+'<br><span class="muted">Апгрейд: '+escapeHtml(costTxt)+'</span>')
+        : ('Цена: '+escapeHtml(costTxt));
 
       return '<div class="item">'+
         '<div class="l">'+
           '<div class="name">'+escapeHtml(b.icon)+' '+escapeHtml(b.name)+' <span class="muted">ур. '+lv+'</span></div>'+
-          '<div class="desc">'+(lv>0 ? ('Добыча: <b>'+escapeHtml(prodParts.join(" • ")||"—")+'</b>') : 'Купи — и база начнёт работать.')+'</div>'+
-          '<div class="cost">'+(lv>0 ? ('Накоплено: '+escapeHtml(bankedParts.join(" ")||"0")) : ('Цена: '+escapeHtml(costTxt)))+'</div>'+
+          '<div class="desc">'+desc+'</div>'+
+          '<div class="cost">'+foot+'</div>'+
         '</div>'+
         '<div class="r">'+
           '<button type="button" class="btn sm '+(canPay(cost) ? "primary":"")+'" data-act="upgrade" data-id="'+b.id+'">'+(lv>0 ? "⬆️ апгрейд" : "🛒 купить")+'</button>'+
@@ -1699,18 +1873,22 @@ function openDay(date){
     }).join("");
 
     var html =
-      '<div class="h"><h3>База</h3><div class="muted">кликер‑производство</div></div>'+
-      '<div class="note" style="margin-top:6px">Здания дают <b>ресурсы</b>. Ресурсы → <b>шмотки</b>. Шмотки → бонусы к XP/монетам/добыче/страховкам.</div>'+
+      '<div class="h"><h3>База</h3><div class="muted">пассивные материалы</div></div>'+
+      '<div class="note" style="margin-top:6px">База приносит материалы сама. Ты заходишь → <b>собираешь</b> → тратишь на <b>шмот</b> и <b>апгрейды</b>. Шмот даёт бонусы к XP/монетам/добыче/страховкам.</div>'+
+      '<div class="sep"></div>'+
+      '<div class="resGrid">'+
+        '<div class="resBox"><div class="k">🪵 Дерево</div><div class="v">'+Math.floor(state.resources.wood||0)+'</div><div class="muted">+'+Math.round(rates.wood||0)+'/ч • '+perDay.wood+'/д</div></div>'+
+        '<div class="resBox"><div class="k">🔩 Металл</div><div class="v">'+Math.floor(state.resources.metal||0)+'</div><div class="muted">+'+Math.round(rates.metal||0)+'/ч • '+perDay.metal+'/д</div></div>'+
+      '</div>'+
       '<div class="sep"></div>'+
       '<div class="btnRow">'+
         '<button type="button" class="btn warn" data-act="collect">📦 Собрать добычу '+(pending>0?("(+"+pending+")"):"")+'</button>'+
-        '<button type="button" class="btn" data-act="openResources">📦 Все ресурсы</button>'+
+        '<button type="button" class="btn" data-act="openResources">📦 Ресурсы</button>'+
       '</div>'+
       '<div class="sep"></div>'+
       '<div class="list">'+rows+'</div>';
     $("#panelMain").innerHTML = html;
   }
-
 
   function shopSlot(slot, btn){
     // highlight chip
@@ -1736,11 +1914,12 @@ function openDay(date){
     ];
     var perks = sumPerks();
     var perkTxt = "Бонусы: +" + Math.round((perks.xp||0)*100) + "% XP • +" + Math.round((perks.coins||0)*100) + "% 🪙 • +" + Math.round((perks.res||0)*100) + "% добычи • 🛡️ " + (state.user.insuranceLeft||0) + "/" + (perks.insurance||0);
+    var lockTxt = "Доступно: "+tierName(shopTier())+" • "+nextTierHint();
     var chips = slots.map(function(s,i){
       return '<button type="button" class="chip '+(i===0?"on":"")+'" data-act="slot" data-slot="'+s[0]+'">'+s[1]+" "+s[2]+'</button>';
     }).join("");
     var html =
-      '<div class="h"><h3>Шмотки</h3><div class="muted">'+escapeHtml(perkTxt)+'</div></div>'+
+      '<div class="h"><h3>Шмотки</h3><div class="muted">'+escapeHtml(perkTxt)+'</div><div class="muted">'+escapeHtml(lockTxt)+'</div></div>'+
       '<div class="sep"></div>'+
       '<div class="chips" id="slotChips">'+chips+'</div>'+
       '<div class="sep"></div>'+
@@ -1763,20 +1942,28 @@ function openDay(date){
     list.innerHTML = items.map(function(it){
       var isOwned = owned.indexOf(it.id)>=0;
       var isEq = eq === it.id;
-      var can = canPay(it.cost);
+      var lock = gearLockReason(it);
+      var locked = (!isOwned && !!lock);
+      var can = locked ? false : canPay(it.cost);
       var costTxt = costLine(it.cost);
 
       var actionBtn = "";
       if(isOwned){
         actionBtn = '<button type="button" class="btn sm '+(isEq?"":"primary")+'" data-act="equip" data-id="'+it.id+'">👕 '+(isEq?"снять":"надеть")+'</button>';
       }else{
-        actionBtn = '<button type="button" class="btn sm '+(can?"primary":"")+'" data-act="buyGear" data-id="'+it.id+'">🛒 купить</button>';
+        if(locked){
+          actionBtn = '<button type="button" class="btn sm" disabled>🔒 '+escapeHtml(lock)+'</button>';
+        }else{
+          actionBtn = '<button type="button" class="btn sm '+(can?"primary":"")+'" data-act="buyGear" data-id="'+it.id+'">🛒 купить</button>';
+        }
       }
 
       return '<div class="item">'+
         '<div class="l">'+
-          '<div class="name">'+escapeHtml(it.name)+' '+rarityTag(it.rarity)+' '+(isEq?'<span class="own">надето</span>':"")+'</div>'+
+          '<div class="name">'+escapeHtml(it.name)+' '+rarityTag(it.rarity)+' '+(locked?'<span class="lock">🔒 '+escapeHtml(lock)+'</span>':"")+' '+(isEq?'<span class="own">надето</span>':"")+'</div>'+
           '<div class="desc">'+escapeHtml(it.desc)+'</div>'+
+          '<div class="muted">Бонусы: '+perkLine(it.perks)+'</div>'+
+
           '<div class="cost">Цена: '+escapeHtml(costTxt)+'</div>'+
         '</div>'+
         '<div class="r">'+actionBtn+'</div>'+
@@ -2008,18 +2195,24 @@ function openDay(date){
   }
 
   function openResources(){
-    var rows = RES.map(function(r){
-      var k=r[0], ico=r[1], name=r[2];
-      return '<div class="resBox"><div class="k">'+ico+' '+escapeHtml(name)+'</div><div class="v">'+Math.floor(state.resources[k]||0)+'</div></div>';
-    }).join("");
-    rows += '<div class="resBox"><div class="k">🪙 Монеты</div><div class="v">'+Math.floor(state.user.coins||0)+'</div></div>';
-    openModal("📦 Все ресурсы",
-      '<div class="note">Вот что у тебя есть. Да, печеньки — тоже ресурс. Не спорь.</div>'+
+    tickProduction();
+    var rates = totalRatesPerHour();
+    var perDayWood = Math.round((rates.wood||0)*24);
+    var perDayMetal = Math.round((rates.metal||0)*24);
+    var html =
+      '<div class="note">Материалы нужны для <b>апгрейдов базы</b> и <b>шмоток</b>. База приносит пассивно — просто заходи и собирай.</div>'+
       '<div class="sep"></div>'+
-      '<div class="resGrid">'+rows+'</div>'+
+      '<div class="resGrid">'+
+        '<div class="resBox"><div class="k">🪵 Дерево</div><div class="v">'+Math.floor(state.resources.wood||0)+'</div><div class="muted">+'+Math.round(rates.wood||0)+'/ч • '+perDayWood+'/д</div></div>'+
+        '<div class="resBox"><div class="k">🔩 Металл</div><div class="v">'+Math.floor(state.resources.metal||0)+'</div><div class="muted">+'+Math.round(rates.metal||0)+'/ч • '+perDayMetal+'/д</div></div>'+
+        '<div class="resBox"><div class="k">🪙 Монеты</div><div class="v">'+Math.floor(state.user.coins||0)+'</div><div class="muted">за привычки + бонусы</div></div>'+
+      '</div>'+
       '<div class="sep"></div>'+
-      '<button type="button" class="btn full" data-act="closeModal">Закрыть</button>'
-    );
+      '<div class="btnRow">'+
+        '<button type="button" class="btn blue" data-act="collect">📦 Собрать добычу</button>'+
+        '<button type="button" class="btn" data-act="closeModal">Закрыть</button>'+
+      '</div>';
+    openModal("📦 Ресурсы", html);
   }
 
   function exportData(){
@@ -2062,8 +2255,7 @@ function openDay(date){
     for(var i=0;i<picks;i++){
       var rr = rand(RES);
       var key = rr[0];
-      var amt = 6 + Math.floor(Math.random()*10);
-      if(key==="crystals") amt = 1 + (Math.random()<0.25?1:0);
+      var amt = (key==="wood") ? (10 + Math.floor(Math.random()*16)) : (6 + Math.floor(Math.random()*13));
       state.resources[key] = (state.resources[key]||0) + amt;
       loot.push(iconOf(key)+" "+amt);
     }
