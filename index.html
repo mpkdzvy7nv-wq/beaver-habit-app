@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🦫 Beaver Builder — трекер привычек (v11.2)</title>
+<title>🦫 Beaver Builder — трекер привычек (v12.4)</title>
 <style>
 :root{
   --bg1:#eaf4ff; --bg2:#fff7e8;
@@ -132,6 +132,32 @@ a{color:inherit}
 .kpi .box b{display:block;font-size:14px}
 .kpi .box span{display:block;font-size:12px;color:var(--muted);font-weight:900;margin-top:3px}
 .note{font-size:12px;color:var(--muted);font-weight:800;line-height:1.35}
+/* Menu (Ещё) */
+.menuGrid{display:grid;gap:10px}
+.menuBtn{
+  width:100%;
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid rgba(17,24,39,.10);
+  background:linear-gradient(180deg,#ffffff,#f7fbff);
+  box-shadow:0 8px 22px rgba(0,0,0,.06);
+  font-weight:950;
+}
+.menuBtn:active{transform:scale(.99)}
+.menuBtn .miIco{
+  width:38px;height:38px;
+  display:grid;place-items:center;
+  border-radius:14px;
+  background:rgba(96,165,250,.18);
+  font-size:18px;
+}
+.menuBtn .miTxt{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.menuBtn .miT{font-weight:1000}
+.menuBtn .miS{font-size:12px;color:var(--muted);font-weight:850}
+.menuBtn.danger{border-color:rgba(239,68,68,.25);background:linear-gradient(180deg,#fff5f5,#ffffff)}
+.menuBtn.danger .miIco{background:rgba(239,68,68,.12)}
+
 
 .nav{
   position:fixed;left:0;right:0;bottom:0;
@@ -372,6 +398,38 @@ input{
   .guideCard h4{margin:0 0 8px 0}
   .guideCard .muted{color:var(--muted);font-weight:700;font-size:13px}
 
+
+/* Clickable pill */
+.pillBtn{cursor:pointer}
+.pillBtn:active{transform:translateY(1px); filter:saturate(1.05)}
+/* Beaver poke */
+#beaverStage{cursor:pointer}
+#beaverSVG .brows{opacity:0; transition:opacity .12s ease}
+#beaverSVG.angry .brows{opacity:1}
+#beaverSVG.angry{animation:angryShake .22s ease-in-out 0s 2}
+@keyframes angryShake{
+  0%{transform:translateX(0) rotate(0deg)}
+  25%{transform:translateX(-1px) rotate(-1deg)}
+  50%{transform:translateX(1px) rotate(1deg)}
+  75%{transform:translateX(-1px) rotate(-1deg)}
+  100%{transform:translateX(0) rotate(0deg)}
+}
+/* Calendar legend */
+.legend{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px}
+.legend .dot{width:10px;height:10px;border-radius:999px;display:inline-block;margin-right:6px}
+.legend .great{background:rgba(34,197,94,.75)}
+.legend .ok{background:rgba(59,130,246,.7)}
+.legend .meh{background:rgba(245,158,11,.75)}
+.legend .bad{background:rgba(239,68,68,.75)}
+.legend .rest{background:rgba(139,92,246,.65)}
+.legend .today{background:rgba(17,24,39,.65)}
+.calCell.today{outline:2px solid rgba(17,24,39,.22); outline-offset:-2px}
+
+/* Bottom nav fit */
+.nav{padding-bottom: calc(env(safe-area-inset-bottom) + 10px)}
+.nav button{min-width:0}
+.nav button .lbl{font-size:11px; letter-spacing:-0.2px}
+
 </style>
 </head>
 <body>
@@ -386,9 +444,7 @@ input{
       <div class="stats">
         <div class="pill"><span id="lvlTxt">Lv 1</span> <small id="rankTxt">Саженец</small></div>
         <div class="pill">🪙 <span id="coinsTxt">0</span></div>
-        <div class="pill">🪵 <span id="woodTxt">0</span></div>
-        <div class="pill">🔩 <span id="metalTxt">0</span></div>
-        <div class="pill">🔥 <span id="streakTxt">0</span></div>
+        <button type="button" class="pill pillBtn" id="streakPill" data-act="streakInfo" aria-label="Серия">🔥 <span id="streakTxt">0</span></button>
       </div>
     </div>
 
@@ -398,7 +454,7 @@ input{
       <div class="card">
         <div class="mascotWrap">
           <div class="mascotTop">
-            <div id="beaverStage" class="float" aria-label="Бобр-маскот">
+            <div id="beaverStage" class="float" aria-label="Бобр-маскот" data-act="pokeBeaver" role="button" tabindex="0">
               <svg id="beaverSVG" viewBox="0 0 240 240" role="img" aria-label="Бобр строитель (полный персонаж)">
                 <defs>
                   <radialGradient id="fur" cx="35%" cy="25%" r="85%">
@@ -482,6 +538,11 @@ input{
                     <circle cx="91" cy="83" r="3" fill="#fff"/>
                     <circle cx="143" cy="83" r="3" fill="#fff"/>
                   </g>
+                  <!-- Brows (angry) -->
+                  <g class="brows" aria-hidden="true">
+                    <path d="M80 72 Q94 62 110 70" fill="none" stroke="#0b0f19" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+                    <path d="M160 72 Q146 62 130 70" fill="none" stroke="#0b0f19" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+                  </g>
                   <!-- Nose -->
                   <path d="M116 98 Q120 90 124 98 Q120 104 116 98Z" fill="#0b0f19"/>
                   <!-- Teeth -->
@@ -510,7 +571,7 @@ input{
             <button type="button" class="btn sm blue" data-act="suggestHabit">🧠 Подкинь привычку</button>
             <button type="button" class="btn sm warn" data-act="collect">📦 Собрать добычу</button>
             <button type="button" class="btn sm" data-act="openChest">🎁 Сундук дня</button>
-            <button type="button" class="btn sm ghost" data-act="say">🎭 Ещё</button>
+            <button type="button" class="btn sm ghost" data-act="openMenu">🎭 Ещё</button>
           </div>
           <div class="note" id="toneHint"></div>
         </div>
@@ -519,12 +580,11 @@ input{
   </div>
 
   <div class="nav" role="navigation" aria-label="Навигация">
-    <button type="button" data-tab="today" class="active"><div class="ico">✅</div><div>Сегодня</div></button>
-    <button type="button" data-tab="calendar"><div class="ico">🗓️</div><div>Календарь</div></button>
-    <button type="button" data-tab="habits"><div class="ico">🧾</div><div>Привычки</div></button>
-    <button type="button" data-tab="base"><div class="ico">🏗️</div><div>База</div></button>
-    <button type="button" data-tab="shop"><div class="ico">🛠️</div><div>Шмотки</div></button>
-    <button type="button" data-tab="me"><div class="ico">📦</div><div>Профиль</div></button>
+    <button type="button" data-tab="today" class="active"><div class="ico">✅</div><div class="lbl">Сегодня</div></button>
+    <button type="button" data-tab="calendar"><div class="ico">🗓️</div><div class="lbl">Календарь</div></button>
+    <button type="button" data-tab="habits"><div class="ico">🧾</div><div class="lbl">Привычки</div></button>
+    <button type="button" data-tab="base"><div class="ico">🏗️</div><div class="lbl">База</div></button>
+    <button type="button" data-tab="shop"><div class="ico">🛠️</div><div class="lbl">Шмотки</div></button>
   </div>
 </div>
 
@@ -551,6 +611,15 @@ input{
   function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
   function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
   function uid(){ return Math.random().toString(16).slice(2) + Date.now().toString(16); }
+
+  function plural(n, forms){
+    n = Math.abs(n) % 100;
+    var n1 = n % 10;
+    if(n > 10 && n < 20) return forms[2];
+    if(n1 > 1 && n1 < 5) return forms[1];
+    if(n1 === 1) return forms[0];
+    return forms[2];
+  }
 
   // If JS fails (old browsers), show visible hint
   window.onerror = function(msg, src, line, col){
@@ -585,9 +654,7 @@ input{
     {id:"sawmill", name:"Лесопилка",  icon:"🪵", capHours:6,  produces:{wood:12},            baseCost:{coins:45,  wood:0,  metal:8}},
     {id:"foundry", name:"Плавильня",  icon:"🔩", capHours:6,  produces:{metal:8},           baseCost:{coins:45,  wood:12, metal:0}},
     {id:"yard",    name:"Строй‑двор", icon:"🏗️", capHours:8,  produces:{wood:7, metal:5},   baseCost:{coins:95,  wood:26, metal:18}},
-    {id:"depot",   name:"Склад‑депо", icon:"📦", capHours:10, produces:{wood:4, metal:4},   baseCost:{coins:140, wood:55, metal:42},
-      special:"Увеличивает лимит хранения 🪵/🔩 и лимит накопления добычи в зданиях."
-    }
+    {id:"depot", name:"Склад", icon:"📦", capHours:10, produces:{}, baseCost:{coins:110, wood:45, metal:35}, special:"Увеличивает лимит хранения 🪵/🔩 и лимит накопления добычи в зданиях."}
   ];
 
 
@@ -762,7 +829,9 @@ input{
   }
 function defaultState(){
     var now = localISODate();
+    // Первый контакт: никаких привычек по умолчанию. Выбор — в конце обучения.
     var habits = [];
+
     var b = {};
     for(var i=0;i<BUILDINGS.length;i++){
       var x = BUILDINGS[i];
@@ -770,7 +839,7 @@ function defaultState(){
     }
     var owned = {head:[],paws:[],body:[],legs:[],bg:[]};
     return {
-      v:4,
+      v:5,
       user:{
         xp:0, level:1, coins:120, streak:0, perfectStreak:0,
         insuranceLeft:0, insuranceWeek:weekKey(new Date()),
@@ -834,13 +903,44 @@ function defaultState(){
     return st;
   }
 
+  function migrateV4toV5(st){
+    // v5: обучение в конце выдаёт набор привычек; по умолчанию привычек нет
+    st.v = 5;
+
+    st.user = st.user || defaultState().user;
+    if(st.user.seenGuide==null) st.user.seenGuide = false;
+
+    // Если это старый "посев" привычек и обучение ещё не проходили — убираем их,
+    // чтобы пользователь реально выбрал набор в финале гайда.
+    try{
+      var hs = st.habits || [];
+      var names = [];
+      for(var i=0;i<hs.length;i++){
+        names.push(String((hs[i] && hs[i].name) || "").trim().toLowerCase());
+      }
+      var seed = ["вода","10 минут ходьбы","чтение 15 минут","нить для зубов"];
+      var hit = 0;
+      for(var j=0;j<seed.length;j++){
+        if(names.indexOf(seed[j])>=0) hit++;
+      }
+      if(!st.user.seenGuide && hs.length<=4 && hit>=3){
+        st.habits = [];
+        st.day = st.day || defaultState().day;
+        st.day.done = st.day.done || {};
+        st.day.closed = false;
+      }
+    }catch(e){}
+
+    return st;
+  }
 function load(){
     try{
       var raw = localStorage.getItem(KEY);
       if(!raw) return defaultState();
       var st = JSON.parse(raw);
-      if(!st || (st.v!==3 && st.v!==4)) return defaultState();
-      if(st.v===3) st = migrateV3toV4(st);
+      if(!st || (st.v!==3 && st.v!==4 && st.v!==5)) return defaultState();
+      if(st.v===3){ st = migrateV3toV4(st); st = migrateV4toV5(st); }
+      if(st.v===4) st = migrateV4toV5(st);
 
       // backfill missing keys safely
       if(!st.user) st.user = defaultState().user;
@@ -1037,64 +1137,132 @@ function toast(msg){
     setTimeout(function(){ stage.classList.remove("hype","angry"); }, 520);
   }
 
+  function streakInfo(){
+    var s = state.user.streak||0;
+    var msg =
+      '<div class="note">🔥 <b>Серия</b> — это сколько дней подряд ты закрывал день.</div>'+
+      '<div class="note">Сломаешь — бобр запишет в «обещал‑сделаю» 😏</div>'+
+      '<div class="sep"></div>'+
+      '<div class="note">Текущая серия: <b>'+s+'</b> '+plural(s, ["день","дня","дней"])+' подряд.</div>'+
+      '<div class="sep"></div>'+
+      '<div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Понял</button></div>';
+    openModal("🔥 Серия", msg);
+  }
+
+  var POKE_LINES = [
+    "Эй. Я не кнопка. Я — легенда стройки.",
+    "Опять тыкаешь? Запишу в журнал нарушителей дисциплины.",
+    "Руки убрал. Я тут привычки цементирую.",
+    "Ты тыкнул — я хмурюсь. Логично.",
+    "Пальцы как у дятла. По делу будет?"
+  ];
+
+  function pokeBeaver(){
+    // angry animation
+    try{
+      var svg = $("#beaverSVG");
+      if(svg){
+        svg.classList.remove("angry");
+        void svg.getBoundingClientRect();
+        svg.classList.add("angry");
+        setTimeout(function(){ svg.classList.remove("angry"); }, 900);
+      }
+    }catch(_){}
+    // reply
+    var line = POKE_LINES[Math.floor(Math.random()*POKE_LINES.length)];
+    var sp = $("#speech"); if(sp) sp.textContent = line;
+    // small haptic-like toast
+    toast("Бобр: "+line);
+  }
+
+
   // ===== Guide (first run) =====
   function maybeShowGuide(){
     if(state.user && !state.user.seenGuide){
-      openGuide(0);
+      openGuide(state.tmp && state.tmp.gstep!=null ? state.tmp.gstep : 3);
     }
   }
   function openGuide(step){
     var steps = [
       { t:"Добро пожаловать на стройку привычек",
-        hero:"Тут не про «новую жизнь с понедельника», а про маленькие победы каждый день.",
-        h:"1) Добавь привычки",
-        bullets:["Выбери 1–3 привычки на старт.","Делай их простыми (5–10 минут).","Бобр любит конкретику: «15 раз», «1.5 л», «15 минут». Не философствуй — строй."],
-        cta:"",
-        act:""
+        hero:"На сколько дней тебя хватит? Без пафоса. Просто проверим — и бобр всё запомнит.",
+        h:"1) Как это работает",
+        bullets:[
+          "Ты выбираешь 1–3 привычки — маленькие, но реальные.",
+          "День = чеклист. Отмечаешь сделанное — получаешь награды.",
+          "Закрыл день — серия растёт. Не закрыл — как ушёл со стройки без сдачи объекта."
+        ],
+        cta:null, act:null
       },
-      { t:"Как играть в день",
-        hero:"Сегодня — твой чеклист. Отмечай сделанное и собирай награды.",
+      { t:"Чеклист дня",
+        hero:"Сегодня — это «сделал/не сделал». Без самобичевания. Только прогресс.",
         h:"2) Отмечай выполненное",
-        bullets:["Тап по тумблеру — засчиталось.","За каждую галочку: XP + монеты.","Бобр реагирует (иногда токсично, но по делу)."],
-        cta:"✅ Перейти в «Сегодня»",
-        act:"goToday"
+        bullets:[
+          "Тап по тумблеру — засчиталось.",
+          "За каждую галочку: XP + 🪙 монеты.",
+          "Бобр реагирует: хвалит, троллит, подталкивает (иногда прямым текстом)."
+        ],
+        cta:"Перейти в «Сегодня»", act:"goToday"
       },
-      { t:"Самое важное действие",
-        hero:"Без закрытия дня награды не начислятся. Это как уйти со стройки, не сдав объект.",
+      { t:"Закрывай день",
+        hero:"Награды начисляются только после закрытия дня. Иначе это как ‘я почти сделал’.",
         h:"3) Закрой день",
-        bullets:["Нажми «✅ Закрыть день».","Если совсем тяжко — «Отдохнуть (50%)».","Календарь показывает прогресс за месяц."],
-        cta:"🗓️ Открыть календарь",
-        act:"goCalendar"
+        bullets:[
+          "Нажми «✅ Закрыть день» — и забирай награды.",
+          "Если совсем тяжко — «Отдохнуть».",
+          "Календарь показывает прогресс за 28 дней."
+        ],
+        cta:"Открыть календарь", act:"goCalendar"
       },
-      { t:"Финиш: выбери стартовый набор",
-        hero:"Сейчас соберём твой первый чеклист. Быстро. Без «с понедельника».",
-        h:"4) Выбери 1–3 привычки",
-        bullets:["Тапни привычки ниже (до 3).","Потом жми «Готово» — и начинаем играть.","Своя привычка? Можно добавить вручную."],
-        cta:"➕ Своя привычка",
-        act:"openAddHabit"
+      { t:"Выбор привычек",
+        hero:"Финиш. Выбирай 1–3 привычки — и погнали строить серию.",
+        h:"4) Выбери привычки на старт",
+        bullets:[
+          "Бери то, что реально сделать каждый день.",
+          "Можно поменять позже — это не приговор.",
+          "Главное: регулярность > героизм."
+        ],
+        cta:null, act:null
       }
     ];
-    step = clamp(step, 0, steps.length-1);
+    var last = steps.length - 1;
+    step = clamp(step, 0, last);
+    if(!state.tmp) state.tmp = {};
+    state.tmp.gstep = step;
+
     var s = steps[step];
-    var presetUI = "";
-if(step===3){
-  if(!state.tmp) state.tmp = {};
-  if(!state.tmp.presetSel) state.tmp.presetSel = {};
-  var selCount = Object.keys(state.tmp.presetSel).filter(function(k){return state.tmp.presetSel[k];}).length;
-  presetUI =
-    '<div class="guideCard" style="margin-top:10px">'+
-      '<h4>Стартовые привычки</h4>'+
-      '<div class="muted">Выбери <b>1–3</b>. Нажмёшь «Готово» — они добавятся.</div>'+
-      '<div class="chipRow">'+
-        PRESET_HABITS.map(function(p,i){var on=!!state.tmp.presetSel[i]; return '<button type="button" class="chip '+(on?'on':'')+'" data-act="presetToggle" data-idx="'+i+'">'+
-          '<span>'+escapeHtml(p.emoji)+'</span><span>'+escapeHtml(p.title)+'</span>'+
-          '</button>';}).join('')+
-      '</div>'+
-      '<div class="sep"></div>'+
-      '<div class="muted">Выбрано: <b>'+selCount+'/3</b></div>'+
-    '</div>';
-}
     var dots = '<div class="dots">' + steps.map(function(_,i){return '<span class="'+(i===step?'on':'')+'"></span>';}).join('') + '</div>';
+
+    var presetUI = "";
+    if(step===last){
+      if(!state.tmp.presetSel) state.tmp.presetSel = {};
+      var selCount = Object.keys(state.tmp.presetSel).filter(function(k){return state.tmp.presetSel[k];}).length;
+      presetUI =
+        '<div class="guideCard" style="margin-top:10px">'+
+          '<h4>Набор на старт (выбери до 3)</h4>'+
+          '<div class="muted">Тапай — и не думай лишнего. Потом можно настроить под себя.</div>'+
+          '<div class="chipRow">'+
+            PRESET_HABITS.map(function(p,i){var on=!!state.tmp.presetSel[i]; return '<button type="button" class="chip '+(on?'on':'')+'" data-act="presetToggle" data-idx="'+i+'">'+
+              '<span>'+escapeHtml(p.emoji)+'</span><span>'+escapeHtml(p.title)+'</span>'+
+              '</button>';}).join('')+
+          '</div>'+
+          '<div class="sep"></div>'+
+          '<div class="muted"><b>'+selCount+'</b>/3 выбрано</div>'+
+        '</div>';
+    }
+
+    var btns = '';
+    if(step===last){
+      btns =
+        '<button type="button" class="btn blue full" data-act="presetAdd">✅ Выбрать привычки</button>'+
+        '<button type="button" class="btn ghost" data-act="guideSkip">Пока не надо</button>';
+    }else{
+      btns =
+        '<button type="button" class="btn blue full" data-act="guideNext" data-step="'+step+'">Дальше</button>'+
+        (s.cta ? '<button type="button" class="btn" data-act="guideCta" data-step="'+step+'">'+escapeHtml(s.cta)+'</button>' : '')+
+        '<button type="button" class="btn ghost" data-act="guideSkip">Пока не надо</button>';
+    }
+
     openModal(
       '🧭 Быстрый старт • '+(step+1)+'/'+steps.length,
       '<div class="guideWrap">'+
@@ -1107,11 +1275,8 @@ if(step===3){
           '<h4>'+escapeHtml(s.h)+'</h4>'+
           '<ul>'+s.bullets.map(function(b){return '<li>'+escapeHtml(b)+'</li>';}).join('')+'</ul>'+
         '</div>'+
-        '<div class="btnRow">'+
-          '<button type="button" class="btn blue full" data-act="guideNext" data-step="'+step+'">'+(step<steps.length-1?'Дальше':'Готово')+'</button>'+
-          (s.cta?'<button type="button" class="btn" data-act="guideCta" data-step="'+step+'">'+escapeHtml(s.cta)+'</button>':'')+
-          '<button type="button" class="btn ghost" data-act="guideSkip">Пока не надо</button>'+
-        '</div>'+
+        presetUI+
+        '<div class="btnRow">'+btns+'</div>'+
       '</div>'
     );
     speak("guide");
@@ -1142,125 +1307,126 @@ if(step===3){
     if(s>=0.45) return "ok";
     return "meh";
   }
-  function renderCalendarCompact(){
-  ensureLogs();
-  logTodayPreview();
-  var today = localISODate();
-  var now = new Date(today+"T00:00:00");
-  var y = now.getFullYear();
-  var m = now.getMonth(); // 0-11
-  var RU_MONTHS = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
-  var first = new Date(y, m, 1);
-  var last  = new Date(y, m+1, 0);
-  var daysInMonth = last.getDate();
-  var startDow = (first.getDay()+6)%7; // monday=0
-  var cells=[];
-  // leading blanks
-  for(var i=0;i<startDow;i++){
-    cells.push('<button type="button" class="calCell empty" disabled> </button>');
+  
+  function calLegend(){
+    return (
+      '<div class="calLegend">'+
+        '<span class="dot great"></span><span>топ</span>'+
+        '<span class="dot ok"></span><span>норм</span>'+
+        '<span class="dot meh"></span><span>так себе</span>'+
+        '<span class="dot bad"></span><span>провал</span>'+
+        '<span class="dot rest"></span><span>отдых</span>'+
+      '</div>'
+    );
   }
-  for(var d=1; d<=daysInMonth; d++){
-    var dt = new Date(y, m, d);
-    var iso = isoDate(dt);
-    var e = state.logs[iso];
-    var tone = calTone(e);
-    cells.push('<button type="button" class="calCell '+tone+'" data-act="openDay" data-date="'+iso+'">'+d+'</button>');
-  }
-  return (
-    '<div class="sep"></div>'+
-    '<div class="h"><h3>Календарь (месяц)</h3><div class="muted">'+RU_MONTHS[m]+' • тапни день — статистика</div></div>'+
-    '<div class="calGrid">'+cells.join("")+'</div>'+
-    '<div class="calLegend">'+
-      '<span class="dot great"></span><span>топ</span>'+
-      '<span class="dot ok"></span><span>норм</span>'+
-      '<span class="dot meh"></span><span>так себе</span>'+
-      '<span class="dot bad"></span><span>провал</span>'+
-      '<span class="dot rest"></span><span>отдых</span>'+
-    '</div>'
-  );
-}
-
-  function renderCalendar(){
-  ensureLogs();
-  logTodayPreview();
-  var today = localISODate();
-  var now = new Date(today+"T00:00:00");
-  var y = now.getFullYear();
-  var m = now.getMonth();
-  var RU_MONTHS = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
-  var first = new Date(y, m, 1);
-  var last  = new Date(y, m+1, 0);
-  var daysInMonth = last.getDate();
-  var startDow = (first.getDay()+6)%7; // monday=0
-
-  var cells=[];
-  var great=0, ok=0, meh=0, bad=0, rest=0;
-
-  for(var i=0;i<startDow;i++){
-    cells.push('<button type="button" class="calCell empty" disabled> </button>');
-  }
-  for(var d=1; d<=daysInMonth; d++){
-    var dt = new Date(y, m, d);
-    var iso = isoDate(dt);
-    var e = state.logs[iso];
-    var tone = calTone(e);
-    if(tone==="great") great++;
-    else if(tone==="ok") ok++;
-    else if(tone==="meh") meh++;
-    else if(tone==="bad") bad++;
-    else if(tone==="rest") rest++;
-    cells.push('<button type="button" class="calCell '+tone+'" data-act="openDay" data-date="'+iso+'">'+d+'</button>');
+  // alias for stray calls / older builds
+  function callLegend(){
+    openModal("ℹ️ Легенда календаря",
+      '<div class="note">Цвет дня зависит от того, сколько привычек ты отметил и закрыл ли день.</div>'+
+      '<div class="sep"></div>'+calLegend()+
+      '<div class="sep"></div><div class="btnRow"><button type="button" class="btn blue full" data-act="closeModal">Понял</button></div>'
+    );
   }
 
-  var summary =
-    '<div class="calMeta">'+
-      '<div class="box"><b>'+great+'</b><span>топ</span></div>'+
-      '<div class="box"><b>'+ok+'</b><span>норм</span></div>'+
-      '<div class="box"><b>'+meh+'</b><span>так себе</span></div>'+
-      '<div class="box"><b>'+bad+'</b><span>провал</span></div>'+
-      '<div class="box"><b>'+rest+'</b><span>отдых</span></div>'+
-    '</div>';
+function renderCalendar(){
+    ensureLogs();
+    logTodayPreview();
 
-  var html =
-    '<div class="calHead"><h3 style="margin:0">Календарь • '+RU_MONTHS[m]+' '+y+'</h3><div class="muted">тапни день — детали</div></div>'+
-    summary+
-    '<div class="sep"></div>'+
-    '<div class="calGrid">'+cells.join("")+'</div>'+
-    '<div class="calLegend">'+
-      '<span class="dot great"></span><span>топ</span>'+
-      '<span class="dot ok"></span><span>норм</span>'+
-      '<span class="dot meh"></span><span>так себе</span>'+
-      '<span class="dot bad"></span><span>провал</span>'+
-      '<span class="dot rest"></span><span>отдых</span>'+
-    '</div>'+
-    '<div class="sep"></div>'+
-    '<div class="btnRow">'+
-      '<button type="button" class="btn blue" data-act="goToday">✅ Сегодня</button>'+
-      '<button type="button" class="btn" data-act="openResources">📦 Ресурсы</button>'+
-    '</div>';
-  $("#panelMain").innerHTML = html;
-}
+    var today = new Date(localISODate()+"T00:00:00");
+    var days = [];
+    for(var i=27;i>=0;i--){
+      var d = new Date(today);
+      d.setDate(today.getDate()-i);
+      days.push(d);
+    }
+
+    // start on Monday column
+    var first = days[0];
+    var startDow = (first.getDay()+6)%7; // Mon=0
+    var cells = [];
+    for(var k=0;k<startDow;k++) cells.push('<div class="calCell empty"></div>');
+
+    var great=0, ok=0, meh=0, bad=0, rest=0;
+
+    for(var j=0;j<days.length;j++){
+      var d2 = days[j];
+      var iso = isoDate(d2);
+      var e = state.logs[iso];
+      var tone = calTone(e);
+
+      if(tone==="great") great++;
+      else if(tone==="ok") ok++;
+      else if(tone==="meh") meh++;
+      else if(tone==="bad") bad++;
+      else if(tone==="rest") rest++;
+
+      var num = d2.getDate();
+      var isToday = (iso===localISODate());
+      var mark = isToday ? ' today' : '';
+      cells.push('<button type="button" class="calCell '+tone+mark+'" data-act="openDay" data-date="'+iso+'">'+num+'</button>');
+    }
+
+    while(cells.length % 7 !== 0) cells.push('<div class="calCell empty"></div>');
+
+    var summary =
+      '<div class="calMeta">'+
+        '<div class="box"><b>'+great+'</b><span>топ</span></div>'+
+        '<div class="box"><b>'+ok+'</b><span>норм</span></div>'+
+        '<div class="box"><b>'+meh+'</b><span>так себе</span></div>'+
+        '<div class="box"><b>'+bad+'</b><span>провал</span></div>'+
+        '<div class="box"><b>'+rest+'</b><span>отдых</span></div>'+
+      '</div>';
+
+    var head =
+      '<div class="calHead">'+
+        '<h3 style="margin:0">Календарь • 28 дней</h3>'+
+        '<div class="muted">тапни день — детали</div>'+
+      '</div>';
+
+    var week =
+      '<div class="muted" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:10px;font-weight:900;opacity:.75">'+
+        '<div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>'+
+      '</div>';
+
+    var legend =
+      '<div class="legend">'+
+        '<span class="dot great"></span> топ'+
+        '<span class="dot ok"></span> норм'+
+        '<span class="dot meh"></span> так себе'+
+        '<span class="dot bad"></span> провал'+
+        '<span class="dot rest"></span> отдых'+
+        '<span class="dot today"></span> сегодня'+
+      '</div>';
+
+    $("#panelMain").innerHTML =
+      head+
+      summary+
+      week+
+      '<div class="sep"></div>'+
+      '<div class="calGrid">'+cells.join("")+'</div>'+
+      legend;
+  }
 
 function openDay(date){
     ensureLogs();
     var e = state.logs[date];
     if(!e){
-      return openModal(
-        "📅 " + escapeHtml(date),
-        '<div class="h"><div class="muted">нет данных</div></div>'
-        + '<div class="note">В этот день ты либо не заходил, либо ещё не закрывал день. Всё норм — просто начни с сегодня.</div>'
-        + '<div class="sep"></div><div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Ок</button></div>'
-      );
+      var body =
+        '<div class="note">В этот день ты либо не заходил, либо ещё не закрывал день. Всё норм — просто начни с сегодня.</div>'+
+        '<div class="sep"></div>'+
+        '<div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Ок</button></div>';
+      return openModal("📅 "+escapeHtml(date), body);
     }
     var total = e.total||0, done = e.done||0;
     var pct = total? Math.round(done/total*100):0;
     var badge = e.rest? "🛌 отдых" : (e.closed? "✅ закрыт" : "🟡 в процессе");
-    var txt = e.rest ? "Ты оформил отдых. Считается как сохранение темпа." : ("Выполнено: <b>"+done+"/"+total+"</b> ("+pct+"%).");
-    openModal(
-      '<div class="h"><h3>📅 '+escapeHtml(date)+'</h3><div class="muted">'+badge+'</div></div>'+
+    var txt = e.rest ? "Ты оформил отдых. Серия не ломается." : ("Выполнено: <b>"+done+"/"+total+"</b> ("+pct+"%).");
+    var body2 =
+      '<div class="h"><div class="muted">'+badge+'</div></div>'+
       '<div class="note" style="margin-top:10px">'+txt+'</div>'+
-      '<div class="sep"></div><div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Закрыть</button></div>'
-    );
+      '<div class="sep"></div>'+
+      '<div class="btnRow"><button type="button" class="btn blue" data-act="closeModal">Закрыть</button></div>';
+    openModal("📅 "+escapeHtml(date), body2);
   }
 
   function ensureWeekInsurance(){
@@ -1282,8 +1448,8 @@ function openDay(date){
     if(kind==="coins") return 1e15;
     var dl = depotLevel();
     // базовый кап + апгрейды депо
-    var base = 600;
-    var perLevel = 350;
+    var base = 260;
+    var perLevel = 180;
     return base + dl*perLevel;
   }
   function bankCapHours(building){
@@ -1498,12 +1664,12 @@ function openDay(date){
       '<div class="note"><b>'+dateISO+'</b> не был закрыт. Это пропуск. Но мы решаем вопрос по‑строительному.</div>'+
       '<div class="sep"></div>'+
       '<div class="btnRow">'+
-        '<button type="button" class="btn warn" data-act="negotiate" data-cost="'+cost+'">🤝 Договориться (50%) — '+cost+' 🪙</button>'+
+        '<button type="button" class="btn warn" data-act="negotiate" data-cost="'+cost+'">🤝 Договориться — '+cost+' 🪙</button>'+
         '<button type="button" class="btn danger" data-act="punish">🧯 Принять наказание</button>'+
         (hasInsurance ? '<button type="button" class="btn blue" data-act="insurance">🛡️ Списать страховку</button>' : '')+
       '</div>'+
       '<div class="sep"></div>'+
-      '<div class="note">Если договориться не выйдет — будет глупый квест от бобра. Чем тупее — тем «по науке».</div>';
+      '<div class="note">Так легко сдаёшься? Мда… Ладно. Выбирай, как будешь выкручиваться 😏</div>';
     openModal("⛔ Пропуск дня", html);
     speak("miss");
   }
@@ -1755,7 +1921,25 @@ function buyGear(id){
     $("#mBody").innerHTML = "";
   }
 
-  function totalRatesPerHour(){
+  
+  function openMenu(){
+    var body =
+      '<div class="menuGrid">'+
+        '<button type="button" class="menuBtn" data-act="goProfile">'+
+          '<div class="miIco">👤</div><div class="miTxt"><div class="miT">Профиль</div><div class="miS">уровень, серии, страховки</div></div>'+
+        '</button>'+
+        '<button type="button" class="menuBtn" data-act="export">'+
+          '<div class="miIco">📤</div><div class="miTxt"><div class="miT">Экспорт</div><div class="miS">сохранить прогресс</div></div>'+
+        '</button>'+
+        '<button type="button" class="menuBtn danger" data-act="reset">'+
+          '<div class="miIco">🧨</div><div class="miTxt"><div class="miT">Сброс</div><div class="miS">только если правда надо</div></div>'+
+        '</button>'+
+      '</div>'+
+      '<div class="note" style="margin-top:10px">Если что — я рядом. Но «Сброс» нажимают только те, кто не читает таблички на стройке.</div>';
+    openModal("🎭 Ещё", body);
+  }
+
+function totalRatesPerHour(){
     tickProduction();
     var p = sumPerks();
     var mult = 1 + (p.res||0);
@@ -1851,15 +2035,16 @@ function totalPending(){
   }
 
   function renderTop(){
-    $("#coinsTxt").textContent = Math.floor(state.user.coins||0);
-    $("#woodTxt").textContent = Math.floor(state.resources.wood||0);
-    $("#metalTxt").textContent = Math.floor(state.resources.metal||0);
+    var el;
+    el = $("#coinsTxt"); if(el) el.textContent = Math.floor(state.user.coins||0);
+    el = $("#woodTxt"); if(el) el.textContent = Math.floor(state.resources.wood||0);
+    el = $("#metalTxt"); if(el) el.textContent = Math.floor(state.resources.metal||0);
     $("#streakTxt").textContent = state.user.streak||0;
     $("#lvlTxt").textContent = "Lv " + (state.user.level||1);
     $("#rankTxt").textContent = getRank(state.user.level||1);
     ensureWeekInsurance();
     var ins = state.user.insuranceLeft || 0;
-    $("#subline").textContent = "Ранг: " + getRank(state.user.level||1) + " • Страховки: " + ins + " • " + localISODate();
+    $("#subline").textContent = "Серия: " + (state.user.streak||0) + " • Ранг: " + getRank(state.user.level||1);
 
     var need = xpNeed(state.user.level||1);
     var pct = clamp(((state.user.xp||0)/need)*100, 0, 100);
@@ -1911,7 +2096,7 @@ function totalPending(){
       '<div class="btnRow" style="margin-top:10px">'+
         '<button type="button" class="btn blue" data-act="openAddHabit">➕ Привычка</button>'+
         '<button type="button" class="btn" data-act="goCalendar">🗓️ Календарь</button>'+
-        '<button type="button" class="btn warn" data-act="restToday">🛌 Отдохнуть (50%)</button>'+
+        '<button type="button" class="btn warn" data-act="restToday">🛌 Отдохнуть</button>'+
       '</div>';
 
     $("#panelMain").innerHTML =
@@ -1962,23 +2147,39 @@ function totalPending(){
     function prodLine(obj, lv){
       var parts=[];
       for(var k in obj){
-        var perH = Math.round((obj[k]||0) * lv * mult);
-        if(perH<=0) continue;
-        parts.push(iconOf(k)+" "+perH+"/ч ("+Math.round(perH*24)+"/д)");
+        var perD = Math.round((obj[k]||0) * lv * mult * 24);
+        if(perD<=0) continue;
+        parts.push(iconOf(k)+" +"+perD+"/д");
       }
       return parts.join(" • ") || "—";
+    }
+
+    function capLine(kind){
+      var cur = Math.floor(state.resources[kind]||0);
+      var cap = storageCap(kind);
+      var warn = (cur >= cap) ? ' <span class="badge danger">полон</span>' : '';
+      return cur + '<span class="muted"> / ' + cap + '</span>' + warn;
+    }
+
+    function depotCapAt(level){
+      var base = 260;
+      var perLevel = 180;
+      return base + level*perLevel;
+    }
+    function depotAddHours(level){
+      if(level<=0) return 0;
+      return 2 + (level-1)*1; // 1 lvl = +2ч, дальше +1ч
     }
 
     var rows = BUILDINGS.map(function(b){
       var st = state.base.buildings[b.id] || {level:0, banked:{}};
       var lv = st.level || 0;
       var nextLv = lv+1;
-      var curLine = lv>0 ? prodLine(b.produces, lv) : "—";
-      var nextLine = prodLine(b.produces, nextLv);
 
       var cost = buildingCost(b.baseCost, Math.max(1, nextLv));
       var costTxt = costLine(cost);
 
+      // banked preview
       var bankedParts = [];
       if(st.banked){
         for(var kk in st.banked){
@@ -1986,41 +2187,57 @@ function totalPending(){
           if(vv>0) bankedParts.push(iconOf(kk) + " " + vv);
         }
       }
+      var bankedTxt = bankedParts.length ? ('<div class="bank">накоплено: '+bankedParts.join(" • ")+'</div>') : '';
 
-      var desc = (lv>0)
-        ? ('Сейчас: <b>'+escapeHtml(curLine)+'</b><br><span class="muted">След. ур.: '+escapeHtml(nextLine)+'</span>')
-        : ('Купи и запусти производство: <b>'+escapeHtml(nextLine)+'</b>');
-      var foot = (lv>0)
-        ? ('Накоплено: '+escapeHtml((bankedParts.join(" • ")||"0"))+'<br><span class="muted">Апгрейд: '+escapeHtml(costTxt)+'</span>')
-        : ('Цена: '+escapeHtml(costTxt));
+      var curLine = lv>0 ? prodLine(b.produces, lv) : "—";
+      var nextLine = prodLine(b.produces, nextLv);
 
-      return '<div class="item">'+
-        '<div class="l">'+
-          '<div class="name">'+escapeHtml(b.icon)+' '+escapeHtml(b.name)+' <span class="muted">ур. '+lv+'</span></div>'+
-          '<div class="desc">'+desc+'</div>'+
-          '<div class="cost">'+foot+'</div>'+
-        '</div>'+
-        '<div class="r">'+
-          '<button type="button" class="btn sm '+(canPay(cost) ? "primary":"")+'" data-act="upgrade" data-id="'+b.id+'">'+(lv>0 ? "⬆️ апгрейд" : "🛒 купить")+'</button>'+
-        '</div>'+
-      '</div>';
+      // Special: depot (warehouse) shows caps instead of production
+      if(b.id==="depot"){
+        var nowCap = depotCapAt(lv);
+        var nxtCap = depotCapAt(nextLv);
+        var addNow = depotAddHours(lv);
+        var addNxt = depotAddHours(nextLv);
+        curLine = 'Лимит склада: <b>'+nowCap+'</b> (🪵/🔩) • накопление зданий: <b>+'+addNow+'ч</b>';
+        nextLine = 'После апгрейда: лимит <b>'+nxtCap+'</b> • накопление зданий: <b>+'+addNxt+'ч</b>';
+      }
+
+      var badge = lv>0 ? ('<span class="badge">ур. '+lv+'</span>') : '<span class="badge ghost">не построено</span>';
+      var sub = b.special ? ('<div class="muted" style="margin-top:6px">'+escapeHtml(b.special)+'</div>') : '';
+      var btn = '<button type="button" class="btn blue" data-act="upgrade" data-id="'+b.id+'">'+(lv>0?"Улучшить":"Построить")+' • '+costTxt+'</button>';
+
+      var htmlRow =
+        '<div class="row">'+
+          '<div class="rowTop">'+
+            '<div class="name"><span class="ico">'+b.icon+'</span> <b>'+escapeHtml(b.name)+'</b> '+badge+'</div>'+
+          '</div>'+
+          '<div class="muted">'+(lv>0?("Сейчас: "+curLine):("Даст: "+(b.id==="depot" ? ('Лимит склада: <b>'+depotCapAt(0)+'</b> • накопление: <b>+0ч</b>') : nextLine)))+'</div>'+
+          (lv>0 ? ('<div class="muted">След. ур.: '+(b.id==="depot"? nextLine : nextLine)+'</div>') : '')+
+          bankedTxt+
+          sub+
+          '<div class="btnRow" style="margin-top:10px">'+btn+'</div>'+
+        '</div>';
+
+      return htmlRow;
     }).join("");
 
     var html =
       '<div class="h"><h3>База</h3><div class="muted">пассивные материалы</div></div>'+
-      '<div class="note" style="margin-top:6px">База приносит материалы сама. Ты заходишь → <b>собираешь</b> → тратишь на <b>шмот</b> и <b>апгрейды</b>. Шмот даёт бонусы к XP/монетам/добыче/страховкам.</div>'+
+      '<div class="note" style="margin-top:6px">У тебя есть <b>лимит склада</b>. Переполнится — добыча не влезет. Апгрейд «Склад» спасает от вечного «куда всё делось?» 😌</div>'+
       '<div class="sep"></div>'+
       '<div class="resGrid">'+
-        '<div class="resBox"><div class="k">🪵 Дерево</div><div class="v">'+Math.floor(state.resources.wood||0)+'</div><div class="muted">+'+Math.round(rates.wood||0)+'/ч • '+perDay.wood+'/д</div></div>'+
-        '<div class="resBox"><div class="k">🔩 Металл</div><div class="v">'+Math.floor(state.resources.metal||0)+'</div><div class="muted">+'+Math.round(rates.metal||0)+'/ч • '+perDay.metal+'/д</div></div>'+
+        '<div class="resBox"><div class="k">🪙 Монеты</div><div class="v">'+Math.floor(state.user.coins||0)+'</div></div>'+
+
+        '<div class="resBox"><div class="k">🪵 Дерево</div><div class="v">'+capLine("wood")+'</div><div class="muted">+'+perDay.wood+'/д</div></div>'+
+        '<div class="resBox"><div class="k">🔩 Металл</div><div class="v">'+capLine("metal")+'</div><div class="muted">+'+perDay.metal+'/д</div></div>'+
       '</div>'+
       '<div class="sep"></div>'+
       '<div class="btnRow">'+
-        '<button type="button" class="btn warn" data-act="collect">📦 Собрать добычу '+(pending>0?("(+"+pending+")"):"")+'</button>'+
-        '<button type="button" class="btn" data-act="openResources">📦 Ресурсы</button>'+
+        '<button type="button" class="btn warn full" data-act="collect">📦 Собрать добычу</button>'+
       '</div>'+
       '<div class="sep"></div>'+
       '<div class="list">'+rows+'</div>';
+
     $("#panelMain").innerHTML = html;
   }
 
@@ -2048,7 +2265,7 @@ function totalPending(){
     ];
     var perks = sumPerks();
     var perkTxt = "Бонусы: +" + Math.round((perks.xp||0)*100) + "% XP • +" + Math.round((perks.coins||0)*100) + "% 🪙 • +" + Math.round((perks.res||0)*100) + "% добычи • 🛡️ " + (state.user.insuranceLeft||0) + "/" + (perks.insurance||0);
-    var lockTxt = "Доступно: "+tierName(shopTier())+" • "+nextTierHint();
+    var lockTxt = "Доступно: "+tierName(shopTier())+" • "+nextTierHint()+" • На складе: 🪵 "+Math.floor(state.resources.wood||0)+" • 🔩 "+Math.floor(state.resources.metal||0);
     var chips = slots.map(function(s,i){
       return '<button type="button" class="chip '+(i===0?"on":"")+'" data-act="slot" data-slot="'+s[0]+'">'+s[1]+" "+s[2]+'</button>';
     }).join("");
@@ -2060,7 +2277,7 @@ function totalPending(){
       '<div id="shopList" class="list"></div>'+
       '<div class="sep"></div>'+
       '<div class="btnRow">'+
-        '<button type="button" class="btn" data-act="openResources">📦 Ресурсы</button>'+
+        ''+
         '<button type="button" class="btn blue" data-act="collect">📦 Собрать добычу</button>'+
       '</div>';
     $("#panelMain").innerHTML = html;
@@ -2287,14 +2504,14 @@ function totalPending(){
   function restToday(){
     var cost = negotiateCost();
     var html =
-      '<div class="note">Хочешь отдых. Я понимаю. Но у нас дисциплина с элементами фарса.</div>'+
+      '<div class="note"><b>Пауза?</b> Я не осуждаю. Я записываю.</div>'+
       '<div class="sep"></div>'+
       '<div class="btnRow">'+
-        '<button type="button" class="btn warn" data-act="negotiateToday" data-cost="'+cost+'">🤝 Договориться (50%) — '+cost+' 🪙</button>'+
-        '<button type="button" class="btn" data-act="closeModal">Передумал, работаю</button>'+
+        '<button type="button" class="btn primary full" data-act="negotiateToday" data-cost="'+cost+'">🤝 Договориться — '+cost+' 🪙</button>'+
+        '<button type="button" class="btn ghost full" data-act="closeModal">Не, я передумал</button>'+
       '</div>'+
       '<div class="sep"></div>'+
-      '<div class="note">Если провал — глупый квест, и всё равно отдых разрешу.</div>';
+      '<div class="note">Так легко сдаёшься? М‑да… Ладно. Жми — посмотрим, что получится.</div>';
     openModal("🛌 Отдохнуть сегодня", html);
     speak("any");
   }
@@ -2337,9 +2554,10 @@ function totalPending(){
       '<div class="note">Материалы нужны для <b>апгрейдов базы</b> и <b>шмоток</b>. База приносит пассивно — просто заходи и собирай.</div>'+
       '<div class="sep"></div>'+
       '<div class="resGrid">'+
-        '<div class="resBox"><div class="k">🪵 Дерево</div><div class="v">'+Math.floor(state.resources.wood||0)+'</div><div class="muted">+'+Math.round(rates.wood||0)+'/ч • '+perDayWood+'/д</div></div>'+
-        '<div class="resBox"><div class="k">🔩 Металл</div><div class="v">'+Math.floor(state.resources.metal||0)+'</div><div class="muted">+'+Math.round(rates.metal||0)+'/ч • '+perDayMetal+'/д</div></div>'+
-        '<div class="resBox"><div class="k">🪙 Монеты</div><div class="v">'+Math.floor(state.user.coins||0)+'</div><div class="muted">за привычки + бонусы</div></div>'+
+        '<div class="resBox"><div class="k">🪵 Дерево</div><div class="v">'+Math.floor(state.resources.wood||0)+'</div><div class="muted">+'+perDayWood+'/д</div></div>'+
+        '<div class="resBox"><div class="k">🔩 Металл</div><div class="v">'+Math.floor(state.resources.metal||0)+'</div><div class="muted">+'+perDayMetal+'/д</div></div>'+
+        '<div class="resBox"><div class="k">🪙 Монеты</div><div class="v">'+Math.floor(state.user.coins||0)+'</div></div>'+
+
       '</div>'+
       '<div class="sep"></div>'+
       '<div class="btnRow">'+
@@ -2437,7 +2655,11 @@ function totalPending(){
 
     // Modal + common
     if(act==="closeModal") return closeModal();
-    if(act==="say") return speak("any");
+    if(act==="openMenu") return openMenu();
+    if(act==="streakInfo") return streakInfo();
+    if(act==="pokeBeaver") return pokeBeaver();
+
+    if(act==="goProfile"){ closeModal(); setTab("me"); return; }
     if(act==="collect") return collectAll();
     if(act==="openChest") return openChest();
     if(act==="openResources") return openResources();
@@ -2448,42 +2670,20 @@ function totalPending(){
 
     // Guide
     if(act==="guideNext"){
-  var s = parseInt(el.getAttribute("data-step")||"0",10);
-  // last step => add chosen presets (for first run) then finish
-  if(s >= 3){
-    if(!state.tmp) state.tmp = {};
-    var sel = state.tmp.presetSel || {};
-    var idxs = Object.keys(sel).filter(function(k){return sel[k];}).map(function(k){return parseInt(k,10);});
-    // first run: require at least 1 preset habit
-    if((!state.habits || state.habits.length===0) && idxs.length===0){
-      toast("Выбери 1–3 привычки для старта.");
-      speak("no");
-      return openGuide(3);
+      var s = parseInt(el.getAttribute("data-step")||"0",10);
+      return openGuide(s+1);
     }
-    for(var i=0;i<idxs.length;i++){
-      var p = PRESET_HABITS[idxs[i]];
-      if(p) addHabitFromPreset(p);
+    if(act==="guideSkip"){
+      // Закрываем обучение. Если привычек нет — пользователь увидит пустой экран с подсказками.
+      state.user.seenGuide = true; save(); return closeModal();
     }
-    state.tmp.presetSel = {};
-    state.user.seenGuide = true;
-    save();
-    closeModal();
-    setTab("today");
-    toast(idxs.length? "Стартовый набор добавлен. Погнали." : "Готово. Погнали.");
-    render();
-    return;
-  }
-  return openGuide(s+1);
-}
-    if(act==="guideSkip"){ state.user.seenGuide = true; save(); toast("Ок. Если что — «Подкинь привычку» на главном."); return closeModal(); }
     if(act==="guideCta"){
-  var step = parseInt(el.getAttribute("data-step")||"0",10);
-  // CTA is optional per step
-  if(step===1){ closeModal(); setTab("today"); return; }
-  if(step===2){ closeModal(); setTab("calendar"); return; }
-  if(step===3){ closeModal(); return openAddHabit(null); }
-  return;
-}
+      var step = parseInt(el.getAttribute("data-step")||"0",10);
+      if(step===1){ closeModal(); setTab("today"); render(); return; }
+      if(step===2){ closeModal(); setTab("calendar"); render(); return; }
+      return;
+    }
+
     if(act==="openGuide") return openGuide(0);
 
     if(act==="presetToggle"){
@@ -2498,15 +2698,30 @@ function totalPending(){
       }
       state.tmp.presetSel[idx] = !cur;
       speak("pick");
-      openGuide(3);
+      openGuide(state.tmp && state.tmp.gstep!=null ? state.tmp.gstep : 3);
       return;
     }
     if(act==="presetAdd"){
-  // kept for backward-compat (старые версии могли кликнуть). Теперь добавление идёт по кнопке «Готово».
-  toast("Выбери 1–3 и нажми «Готово».");
-  speak("any");
-  return openGuide(3);
-}
+      if(!state.tmp) state.tmp = {};
+      var sel = state.tmp.presetSel || {};
+      var idxs = Object.keys(sel).filter(function(k){return sel[k];}).map(function(k){return parseInt(k,10);});
+      if(idxs.length===0){ toast("Выбери хотя бы одну."); speak("no"); return; }
+      // добавляем как привычки
+      for(var i=0;i<idxs.length;i++){
+        var p = PRESET_HABITS[idxs[i]];
+        if(!p) continue;
+        addHabitFromPreset(p);
+      }
+      state.tmp.presetSel = {};
+      state.user.seenGuide = true;
+      save();
+      speak("nice");
+      closeModal();
+      setTab("today");
+      toast("Привычки добавлены. Погнали.");
+      render();
+      return;
+    }
 
 
     // Calendar day details
