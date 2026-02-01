@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🦫 Beaver Builder — Мобильный трекер привычек (v4)</title>
+<title>🦫 Beaver Builder — Мобильный трекер привычек (v5)</title>
 <style>
 :root{
   --bg1:#eaf4ff; --bg2:#fff7e8;
@@ -297,8 +297,7 @@ input{
       <div style="min-width:0">
         <div class="title">🦫 Beaver Builder</div>
         <div class="sub" id="subline">мобильная версия • всё кликается</div>
-        <div class="sub" id="tapline" style="opacity:.75">тапы: 0</div>
-        <div class="xpbar"><div id="xpFill"></div></div>
+<div class="xpbar"><div id="xpFill"></div></div>
       </div>
       <div class="stats">
         <div class="pill"><span id="lvlTxt">Lv 1</span> <small id="rankTxt">Саженец</small></div>
@@ -430,7 +429,7 @@ input{
 
 <script>
 (function(){
-  var KEY = "beaver_habit_builder_mobile_v4";
+  var KEY = "beaver_habit_builder_mobile_v5";
   function $(s,r){ return (r||document).querySelector(s); }
   function $all(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
   function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
@@ -1745,9 +1744,9 @@ input{
     if(act==="negotiateToday") return negotiateToday(el.getAttribute("data-cost"));
   }
 
-  // ==== Mobile tap handling (ultra-robust) ====
-// Some mobile WebViews may send Text nodes as event targets; also SVG elements can miss closest().
-// We implement safe closest()/matches() and only suppress click if a touch tap was actually handled.
+  // ==== Mobile tap handling (v5, fixed) ====
+// Goal: reliable taps in mobile Safari/Android + WebViews without breaking desktop clicks.
+// Implementation: event delegation with safeClosest + touch/click coordination.
 
 (function polyfills(){
   if (!Element.prototype.matches) {
@@ -1775,7 +1774,6 @@ function safeClosest(node, sel){
   var el = asElement(node);
   if(!el) return null;
   if(el.closest) return el.closest(sel);
-  // fallback
   while(el){
     if(el.matches && el.matches(sel)) return el;
     el = el.parentElement;
@@ -1783,47 +1781,37 @@ function safeClosest(node, sel){
   return null;
 }
 
-var tapHandledAt = 0;
-var tapCount = 0;
+var lastTouchHandledAt = 0;
 
-function bumpTap(){
-  tapCount++;
-  var tl = $("#tapline");
-  if(tl) tl.textContent = "тапы: " + tapCount;
-}
-
-function handleEvent(e){
+function handleTap(e){
   var actBtn = safeClosest(e.target, "[data-act]");
-  if(actBtn){ onAction(actBtn.getAttribute("data-act"), actBtn); bumpTap(); return true; }
+  if(actBtn){ onAction(actBtn.getAttribute("data-act"), actBtn); return true; }
 
   var tabBtn = safeClosest(e.target, ".nav button[data-tab]");
-  if(tabBtn){ setTab(tabBtn.getAttribute("data-tab")); bumpTap(); return true; }
+  if(tabBtn){ setTab(tabBtn.getAttribute("data-tab")); return true; }
 
   return false;
 }
 
+// Prefer pointer events when available.
 document.addEventListener("pointerup", function(e){
   if(e && e.pointerType === "touch"){
-    var handled = handleEvent(e);
-    if(handled) tapHandledAt = Date.now();
+    if(handleTap(e)) lastTouchHandledAt = Date.now();
   }
 }, true);
 
-// Some Android/iOS WebViews are inconsistent with pointer events; keep touchend fallback.
-// IMPORTANT: don't mark as passive-only because we might need default click to happen.
+// Fallback for older/quirky WebViews.
 document.addEventListener("touchend", function(e){
-  var handled = handleEvent(e);
-  if(handled) tapHandledAt = Date.now();
+  if(handleTap(e)) lastTouchHandledAt = Date.now();
 }, true);
 
+// Desktop + non-touch clicks.
+// IMPORTANT: don't swallow click unless we just handled a touch.
 document.addEventListener("click", function(e){
-  // Suppress the synthetic click ONLY if we already handled a real touch tap
-  if(Date.now() - tapHandledAt < 450) return;
-  handleEvent(e);
+  if(Date.now() - lastTouchHandledAt < 450) return;
+  handleTap(e);
 }, true);
 // ==== end tap handling ====
-  }, true);
-
   var state = load();
   var tab = "today";
 
@@ -1839,8 +1827,6 @@ document.addEventListener("click", function(e){
       if(tab==="base") renderBase();
       if(tab==="me") renderMe();
     }, 1500);
-    // quick sanity toast so user sees it reacts
-    setTimeout(function(){ toast("Готово. Тапай кнопки — всё кликается."); }, 450);
   }
 
   boot();
