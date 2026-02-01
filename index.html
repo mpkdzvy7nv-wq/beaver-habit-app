@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🦫 Beaver Builder — трекер привычек (v11.1)</title>
+<title>🦫 Beaver Builder — трекер привычек (v11.2)</title>
 <style>
 :root{
   --bg1:#eaf4ff; --bg2:#fff7e8;
@@ -762,12 +762,7 @@ input{
   }
 function defaultState(){
     var now = localISODate();
-    var habits = [
-      {id:uid(), emoji:"💧", name:"Вода", diff:"easy", xp:10, coins:6, active:true, createdAt:Date.now()},
-      {id:uid(), emoji:"🏃", name:"10 минут ходьбы", diff:"easy", xp:10, coins:6, active:true, createdAt:Date.now()},
-      {id:uid(), emoji:"📚", name:"Чтение 15 минут", diff:"normal", xp:14, coins:8, active:true, createdAt:Date.now()},
-      {id:uid(), emoji:"🦷", name:"Нить для зубов", diff:"easy", xp:10, coins:6, active:true, createdAt:Date.now()}
-    ];
+    var habits = [];
     var b = {};
     for(var i=0;i<BUILDINGS.length;i++){
       var x = BUILDINGS[i];
@@ -1053,9 +1048,9 @@ function toast(msg){
       { t:"Добро пожаловать на стройку привычек",
         hero:"Тут не про «новую жизнь с понедельника», а про маленькие победы каждый день.",
         h:"1) Добавь привычки",
-        bullets:["Выбери 1–3 привычки на старт.","Делай их простыми (5–10 минут).","Эмодзи — чтобы мозгу было приятно."],
-        cta:"➕ Добавить привычку",
-        act:"openAddHabit"
+        bullets:["Выбери 1–3 привычки на старт.","Делай их простыми (5–10 минут).","Бобр любит конкретику: «15 раз», «1.5 л», «15 минут». Не философствуй — строй."],
+        cta:"",
+        act:""
       },
       { t:"Как играть в день",
         hero:"Сегодня — твой чеклист. Отмечай сделанное и собирай награды.",
@@ -1067,40 +1062,38 @@ function toast(msg){
       { t:"Самое важное действие",
         hero:"Без закрытия дня награды не начислятся. Это как уйти со стройки, не сдав объект.",
         h:"3) Закрой день",
-        bullets:["Нажми «✅ Закрыть день».","Если совсем тяжко — «Отдохнуть (50%)».","Календарь показывает прогресс за 28 дней."],
+        bullets:["Нажми «✅ Закрыть день».","Если совсем тяжко — «Отдохнуть (50%)».","Календарь показывает прогресс за месяц."],
         cta:"🗓️ Открыть календарь",
         act:"goCalendar"
       },
-      { t:"Прокачка и шмот",
-        hero:"Шмот — это не косметика. Он даёт бонусы к XP, монетам и добыче.",
-        h:"4) Сделай бобра крутым",
-        bullets:["База приносит ресурсы каждый день.","Ресурсы → шмот.","Дорогой шмот — заметно сильнее."],
-        cta:"🛠️ Открыть шмотки",
-        act:"goShop"
+      { t:"Финиш: выбери стартовый набор",
+        hero:"Сейчас соберём твой первый чеклист. Быстро. Без «с понедельника».",
+        h:"4) Выбери 1–3 привычки",
+        bullets:["Тапни привычки ниже (до 3).","Потом жми «Готово» — и начинаем играть.","Своя привычка? Можно добавить вручную."],
+        cta:"➕ Своя привычка",
+        act:"openAddHabit"
       }
     ];
     step = clamp(step, 0, steps.length-1);
     var s = steps[step];
     var presetUI = "";
-    if(step===0){
-      if(!state.tmp) state.tmp = {};
-      if(!state.tmp.presetSel) state.tmp.presetSel = {};
-      var selCount = Object.keys(state.tmp.presetSel).filter(function(k){return state.tmp.presetSel[k];}).length;
-      presetUI =
-        '<div class="guideCard" style="margin-top:10px">'+
-          '<h4>Готовые привычки (выбери до 3)</h4>'+
-          '<div class="muted">Чтобы начать за 30 секунд — без выдумываний.</div>'+
-          '<div class="chipRow">'+
-            PRESET_HABITS.map(function(p,i){var on=!!state.tmp.presetSel[i]; return '<button type="button" class="chip '+(on?'on':'')+'" data-act="presetToggle" data-idx="'+i+'">'+
-              '<span>'+escapeHtml(p.emoji)+'</span><span>'+escapeHtml(p.title)+'</span>'+
-              '</button>';}).join('')+
-          '</div>'+
-          '<div class="sep"></div>'+
-          '<div class="btnRow">'+
-            '<button type="button" class="btn blue full" data-act="presetAdd">✅ Добавить выбранные ('+selCount+'/3)</button>'+
-          '</div>'+
-        '</div>';
-    }
+if(step===3){
+  if(!state.tmp) state.tmp = {};
+  if(!state.tmp.presetSel) state.tmp.presetSel = {};
+  var selCount = Object.keys(state.tmp.presetSel).filter(function(k){return state.tmp.presetSel[k];}).length;
+  presetUI =
+    '<div class="guideCard" style="margin-top:10px">'+
+      '<h4>Стартовые привычки</h4>'+
+      '<div class="muted">Выбери <b>1–3</b>. Нажмёшь «Готово» — они добавятся.</div>'+
+      '<div class="chipRow">'+
+        PRESET_HABITS.map(function(p,i){var on=!!state.tmp.presetSel[i]; return '<button type="button" class="chip '+(on?'on':'')+'" data-act="presetToggle" data-idx="'+i+'">'+
+          '<span>'+escapeHtml(p.emoji)+'</span><span>'+escapeHtml(p.title)+'</span>'+
+          '</button>';}).join('')+
+      '</div>'+
+      '<div class="sep"></div>'+
+      '<div class="muted">Выбрано: <b>'+selCount+'/3</b></div>'+
+    '</div>';
+}
     var dots = '<div class="dots">' + steps.map(function(_,i){return '<span class="'+(i===step?'on':'')+'"></span>';}).join('') + '</div>';
     openModal(
       '🧭 Быстрый старт • '+(step+1)+'/'+steps.length,
@@ -1115,8 +1108,8 @@ function toast(msg){
           '<ul>'+s.bullets.map(function(b){return '<li>'+escapeHtml(b)+'</li>';}).join('')+'</ul>'+
         '</div>'+
         '<div class="btnRow">'+
-          '<button type="button" class="btn blue full" data-act="guideCta" data-step="'+step+'">'+escapeHtml(s.cta)+'</button>'+
-          '<button type="button" class="btn" data-act="guideNext" data-step="'+step+'">'+(step<steps.length-1?'Дальше':'Готово')+'</button>'+
+          '<button type="button" class="btn blue full" data-act="guideNext" data-step="'+step+'">'+(step<steps.length-1?'Дальше':'Готово')+'</button>'+
+          (s.cta?'<button type="button" class="btn" data-act="guideCta" data-step="'+step+'">'+escapeHtml(s.cta)+'</button>':'')+
           '<button type="button" class="btn ghost" data-act="guideSkip">Пока не надо</button>'+
         '</div>'+
       '</div>'
@@ -1150,80 +1143,104 @@ function toast(msg){
     return "meh";
   }
   function renderCalendarCompact(){
-    ensureLogs();
-    logTodayPreview();
-    var today = localISODate();
-    var d0 = new Date(today+"T00:00:00");
-    var cells=[];
-    for(var i=27;i>=0;i--){
-      var d = new Date(d0); d.setDate(d.getDate()-i);
-      var iso = isoDate(d);
-      var e = state.logs[iso];
-      var tone = calTone(e);
-      var lab = String(d.getDate());
-      cells.push('<button type="button" class="calCell '+tone+'" data-act="openDay" data-date="'+iso+'">'+lab+'</button>');
-    }
-    return (
-      '<div class="sep"></div>'+
-      '<div class="h"><h3>Календарь (28 дней)</h3><div class="muted">тапни день — статистика</div></div>'+
-      '<div class="calGrid">'+cells.join("")+'</div>'+
-      '<div class="calLegend">'+
-        '<span class="dot great"></span><span>топ</span>'+
-        '<span class="dot ok"></span><span>норм</span>'+
-        '<span class="dot meh"></span><span>так себе</span>'+
-        '<span class="dot bad"></span><span>провал</span>'+
-        '<span class="dot rest"></span><span>отдых</span>'+
-      '</div>'
-    );
+  ensureLogs();
+  logTodayPreview();
+  var today = localISODate();
+  var now = new Date(today+"T00:00:00");
+  var y = now.getFullYear();
+  var m = now.getMonth(); // 0-11
+  var RU_MONTHS = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+  var first = new Date(y, m, 1);
+  var last  = new Date(y, m+1, 0);
+  var daysInMonth = last.getDate();
+  var startDow = (first.getDay()+6)%7; // monday=0
+  var cells=[];
+  // leading blanks
+  for(var i=0;i<startDow;i++){
+    cells.push('<button type="button" class="calCell empty" disabled> </button>');
   }
-  
+  for(var d=1; d<=daysInMonth; d++){
+    var dt = new Date(y, m, d);
+    var iso = isoDate(dt);
+    var e = state.logs[iso];
+    var tone = calTone(e);
+    cells.push('<button type="button" class="calCell '+tone+'" data-act="openDay" data-date="'+iso+'">'+d+'</button>');
+  }
+  return (
+    '<div class="sep"></div>'+
+    '<div class="h"><h3>Календарь (месяц)</h3><div class="muted">'+RU_MONTHS[m]+' • тапни день — статистика</div></div>'+
+    '<div class="calGrid">'+cells.join("")+'</div>'+
+    '<div class="calLegend">'+
+      '<span class="dot great"></span><span>топ</span>'+
+      '<span class="dot ok"></span><span>норм</span>'+
+      '<span class="dot meh"></span><span>так себе</span>'+
+      '<span class="dot bad"></span><span>провал</span>'+
+      '<span class="dot rest"></span><span>отдых</span>'+
+    '</div>'
+  );
+}
+
   function renderCalendar(){
-    ensureLogs();
-    logTodayPreview();
-    var today = localISODate();
-    var d0 = new Date(today+"T00:00:00");
-    var cells=[];
-    var great=0, ok=0, meh=0, bad=0, rest=0;
-    for(var i=27;i>=0;i--){
-      var d = new Date(d0); d.setDate(d.getDate()-i);
-      var iso = isoDate(d);
-      var e = state.logs[iso];
-      var tone = calTone(e);
-      if(tone==="great") great++;
-      else if(tone==="ok") ok++;
-      else if(tone==="meh") meh++;
-      else if(tone==="bad") bad++;
-      else if(tone==="rest") rest++;
-      var lab = String(d.getDate());
-      cells.push('<button type="button" class="calCell '+tone+'" data-act="openDay" data-date="'+iso+'">'+lab+'</button>');
-    }
-    var summary =
-      '<div class="calMeta">'+
-        '<div class="box"><b>'+great+'</b><span>топ</span></div>'+
-        '<div class="box"><b>'+ok+'</b><span>норм</span></div>'+
-        '<div class="box"><b>'+meh+'</b><span>так себе</span></div>'+
-        '<div class="box"><b>'+bad+'</b><span>провал</span></div>'+
-        '<div class="box"><b>'+rest+'</b><span>отдых</span></div>'+
-      '</div>';
-    var html =
-      '<div class="calHead"><h3 style="margin:0">Календарь • 28 дней</h3><div class="muted">тапни день — детали</div></div>'+
-      summary+
-      '<div class="sep"></div>'+
-      '<div class="calGrid">'+cells.join("")+'</div>'+
-      '<div class="calLegend">'+
-        '<span class="dot great"></span><span>топ</span>'+
-        '<span class="dot ok"></span><span>норм</span>'+
-        '<span class="dot meh"></span><span>так себе</span>'+
-        '<span class="dot bad"></span><span>провал</span>'+
-        '<span class="dot rest"></span><span>отдых</span>'+
-      '</div>'+
-      '<div class="sep"></div>'+
-      '<div class="btnRow">'+
-        '<button type="button" class="btn blue" data-act="goToday">✅ Сегодня</button>'+
-        '<button type="button" class="btn" data-act="openResources">📦 Ресурсы</button>'+
-      '</div>';
-    $("#panelMain").innerHTML = html;
+  ensureLogs();
+  logTodayPreview();
+  var today = localISODate();
+  var now = new Date(today+"T00:00:00");
+  var y = now.getFullYear();
+  var m = now.getMonth();
+  var RU_MONTHS = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+  var first = new Date(y, m, 1);
+  var last  = new Date(y, m+1, 0);
+  var daysInMonth = last.getDate();
+  var startDow = (first.getDay()+6)%7; // monday=0
+
+  var cells=[];
+  var great=0, ok=0, meh=0, bad=0, rest=0;
+
+  for(var i=0;i<startDow;i++){
+    cells.push('<button type="button" class="calCell empty" disabled> </button>');
   }
+  for(var d=1; d<=daysInMonth; d++){
+    var dt = new Date(y, m, d);
+    var iso = isoDate(dt);
+    var e = state.logs[iso];
+    var tone = calTone(e);
+    if(tone==="great") great++;
+    else if(tone==="ok") ok++;
+    else if(tone==="meh") meh++;
+    else if(tone==="bad") bad++;
+    else if(tone==="rest") rest++;
+    cells.push('<button type="button" class="calCell '+tone+'" data-act="openDay" data-date="'+iso+'">'+d+'</button>');
+  }
+
+  var summary =
+    '<div class="calMeta">'+
+      '<div class="box"><b>'+great+'</b><span>топ</span></div>'+
+      '<div class="box"><b>'+ok+'</b><span>норм</span></div>'+
+      '<div class="box"><b>'+meh+'</b><span>так себе</span></div>'+
+      '<div class="box"><b>'+bad+'</b><span>провал</span></div>'+
+      '<div class="box"><b>'+rest+'</b><span>отдых</span></div>'+
+    '</div>';
+
+  var html =
+    '<div class="calHead"><h3 style="margin:0">Календарь • '+RU_MONTHS[m]+' '+y+'</h3><div class="muted">тапни день — детали</div></div>'+
+    summary+
+    '<div class="sep"></div>'+
+    '<div class="calGrid">'+cells.join("")+'</div>'+
+    '<div class="calLegend">'+
+      '<span class="dot great"></span><span>топ</span>'+
+      '<span class="dot ok"></span><span>норм</span>'+
+      '<span class="dot meh"></span><span>так себе</span>'+
+      '<span class="dot bad"></span><span>провал</span>'+
+      '<span class="dot rest"></span><span>отдых</span>'+
+    '</div>'+
+    '<div class="sep"></div>'+
+    '<div class="btnRow">'+
+      '<button type="button" class="btn blue" data-act="goToday">✅ Сегодня</button>'+
+      '<button type="button" class="btn" data-act="openResources">📦 Ресурсы</button>'+
+    '</div>';
+  $("#panelMain").innerHTML = html;
+}
+
 function openDay(date){
     ensureLogs();
     var e = state.logs[date];
@@ -1486,7 +1503,7 @@ function openDay(date){
         (hasInsurance ? '<button type="button" class="btn blue" data-act="insurance">🛡️ Списать страховку</button>' : '')+
       '</div>'+
       '<div class="sep"></div>'+
-      '<div class="note">Если договориться не выйдет — дам глупое задание и всё равно разрешу «отдохнуть денёк».</div>';
+      '<div class="note">Если договориться не выйдет — будет глупый квест от бобра. Чем тупее — тем «по науке».</div>';
     openModal("⛔ Пропуск дня", html);
     speak("miss");
   }
@@ -2431,19 +2448,42 @@ function totalPending(){
 
     // Guide
     if(act==="guideNext"){
-      var s = parseInt(el.getAttribute("data-step")||"0",10);
-      if(s >= 3){ state.user.seenGuide = true; save(); closeModal(); return; }
-      return openGuide(s+1);
+  var s = parseInt(el.getAttribute("data-step")||"0",10);
+  // last step => add chosen presets (for first run) then finish
+  if(s >= 3){
+    if(!state.tmp) state.tmp = {};
+    var sel = state.tmp.presetSel || {};
+    var idxs = Object.keys(sel).filter(function(k){return sel[k];}).map(function(k){return parseInt(k,10);});
+    // first run: require at least 1 preset habit
+    if((!state.habits || state.habits.length===0) && idxs.length===0){
+      toast("Выбери 1–3 привычки для старта.");
+      speak("no");
+      return openGuide(3);
     }
-    if(act==="guideSkip"){ state.user.seenGuide = true; save(); return closeModal(); }
+    for(var i=0;i<idxs.length;i++){
+      var p = PRESET_HABITS[idxs[i]];
+      if(p) addHabitFromPreset(p);
+    }
+    state.tmp.presetSel = {};
+    state.user.seenGuide = true;
+    save();
+    closeModal();
+    setTab("today");
+    toast(idxs.length? "Стартовый набор добавлен. Погнали." : "Готово. Погнали.");
+    render();
+    return;
+  }
+  return openGuide(s+1);
+}
+    if(act==="guideSkip"){ state.user.seenGuide = true; save(); toast("Ок. Если что — «Подкинь привычку» на главном."); return closeModal(); }
     if(act==="guideCta"){
-      var step = parseInt(el.getAttribute("data-step")||"0",10);
-      if(step===0){ closeModal(); return openAddHabit(null); }
-      if(step===1){ closeModal(); setTab("today"); return; }
-      if(step===2){ closeModal(); setTab("calendar"); return; }
-      if(step===3){ closeModal(); setTab("shop"); return; }
-      return;
-    }
+  var step = parseInt(el.getAttribute("data-step")||"0",10);
+  // CTA is optional per step
+  if(step===1){ closeModal(); setTab("today"); return; }
+  if(step===2){ closeModal(); setTab("calendar"); return; }
+  if(step===3){ closeModal(); return openAddHabit(null); }
+  return;
+}
     if(act==="openGuide") return openGuide(0);
 
     if(act==="presetToggle"){
@@ -2458,29 +2498,15 @@ function totalPending(){
       }
       state.tmp.presetSel[idx] = !cur;
       speak("pick");
-      openGuide(0);
+      openGuide(3);
       return;
     }
     if(act==="presetAdd"){
-      if(!state.tmp) state.tmp = {};
-      var sel = state.tmp.presetSel || {};
-      var idxs = Object.keys(sel).filter(function(k){return sel[k];}).map(function(k){return parseInt(k,10);});
-      if(idxs.length===0){ toast("Выбери хотя бы одну."); speak("no"); return; }
-      // добавляем как привычки
-      for(var i=0;i<idxs.length;i++){
-        var p = PRESET_HABITS[idxs[i]];
-        if(!p) continue;
-        addHabitFromPreset(p);
-      }
-      state.tmp.presetSel = {};
-      save();
-      speak("nice");
-      closeModal();
-      setTab("today");
-      toast("Привычки добавлены. Погнали.");
-      render();
-      return;
-    }
+  // kept for backward-compat (старые версии могли кликнуть). Теперь добавление идёт по кнопке «Готово».
+  toast("Выбери 1–3 и нажми «Готово».");
+  speak("any");
+  return openGuide(3);
+}
 
 
     // Calendar day details
