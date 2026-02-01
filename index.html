@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🦫 Beaver Builder — трекер привычек (v12.4)</title>
+<title>🦫 Beaver Builder — трекер привычек (v12.6)</title>
 <style>
 :root{
   --bg1:#eaf4ff; --bg2:#fff7e8;
@@ -776,7 +776,25 @@ input{
     var tb = new Date(+pb[0],+pb[1]-1,+pb[2]).getTime();
     return Math.round((tb-ta)/86400000);
   }
-  function weekKey(d){
+  
+  function shiftYM(ym, delta){
+    if(!ym) ym = localISODate().slice(0,7);
+    var y = +ym.slice(0,4);
+    var m = +ym.slice(5,7);
+    m += delta;
+    while(m < 1){ m += 12; y--; }
+    while(m > 12){ m -= 12; y++; }
+    return String(y) + "-" + String(m).padStart(2,"0");
+  }
+  function monthTitle(ym){
+    var months = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+    if(!ym) ym = localISODate().slice(0,7);
+    var y = +ym.slice(0,4);
+    var m = +ym.slice(5,7);
+    return months[m-1] + " " + y;
+  }
+
+function weekKey(d){
     d = d || new Date();
     var dt = new Date(d.getTime()); dt.setHours(0,0,0,0);
     dt.setDate(dt.getDate() + 3 - (dt.getDay()+6)%7);
@@ -1179,7 +1197,7 @@ function toast(msg){
   // ===== Guide (first run) =====
   function maybeShowGuide(){
     if(state.user && !state.user.seenGuide){
-      openGuide(state.tmp && state.tmp.gstep!=null ? state.tmp.gstep : 3);
+      openGuide(state.tmp && state.tmp.gstep!=null ? state.tmp.gstep : 0);
     }
   }
   function openGuide(step){
@@ -1210,7 +1228,7 @@ function toast(msg){
         bullets:[
           "Нажми «✅ Закрыть день» — и забирай награды.",
           "Если совсем тяжко — «Отдохнуть».",
-          "Календарь показывает прогресс за 28 дней."
+          "Календарь показывает прогресс за месяц."
         ],
         cta:"Открыть календарь", act:"goCalendar"
       },
@@ -1328,29 +1346,29 @@ function toast(msg){
     );
   }
 
+
 function renderCalendar(){
     ensureLogs();
     logTodayPreview();
 
-    var today = new Date(localISODate()+"T00:00:00");
-    var days = [];
-    for(var i=27;i>=0;i--){
-      var d = new Date(today);
-      d.setDate(today.getDate()-i);
-      days.push(d);
-    }
+    if(!state.tmp) state.tmp = {};
+    if(!state.tmp.calYM) state.tmp.calYM = localISODate().slice(0,7);
+    var ym = state.tmp.calYM;
+
+    var y = +ym.slice(0,4), m = +ym.slice(5,7);
+    var first = new Date(y, m-1, 1);
+    var lastDay = new Date(y, m, 0).getDate();
 
     // start on Monday column
-    var first = days[0];
     var startDow = (first.getDay()+6)%7; // Mon=0
     var cells = [];
     for(var k=0;k<startDow;k++) cells.push('<div class="calCell empty"></div>');
 
     var great=0, ok=0, meh=0, bad=0, rest=0;
 
-    for(var j=0;j<days.length;j++){
-      var d2 = days[j];
-      var iso = isoDate(d2);
+    for(var d=1; d<=lastDay; d++){
+      var dt = new Date(y, m-1, d);
+      var iso = isoDate(dt);
       var e = state.logs[iso];
       var tone = calTone(e);
 
@@ -1360,42 +1378,36 @@ function renderCalendar(){
       else if(tone==="bad") bad++;
       else if(tone==="rest") rest++;
 
-      var num = d2.getDate();
       var isToday = (iso===localISODate());
       var mark = isToday ? ' today' : '';
-      cells.push('<button type="button" class="calCell '+tone+mark+'" data-act="openDay" data-date="'+iso+'">'+num+'</button>');
+      cells.push('<button type="button" class="calCell '+tone+mark+'" data-act="openDay" data-date="'+iso+'">'+d+'</button>');
     }
-
     while(cells.length % 7 !== 0) cells.push('<div class="calCell empty"></div>');
 
-    var summary =
-      '<div class="calMeta">'+
-        '<div class="box"><b>'+great+'</b><span>топ</span></div>'+
-        '<div class="box"><b>'+ok+'</b><span>норм</span></div>'+
-        '<div class="box"><b>'+meh+'</b><span>так себе</span></div>'+
-        '<div class="box"><b>'+bad+'</b><span>провал</span></div>'+
-        '<div class="box"><b>'+rest+'</b><span>отдых</span></div>'+
+    var head =
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">'+
+        '<div class="h" style="margin:0">'+
+          '<div style="display:flex;align-items:center;gap:8px">'+
+            '<button type="button" class="btn ghost" style="padding:8px 10px" data-act="calPrev">‹</button>'+
+            '<div style="font-weight:1000">'+escapeHtml(monthTitle(ym))+'</div>'+
+            '<button type="button" class="btn ghost" style="padding:8px 10px" data-act="calNext">›</button>'+
+          '</div>'+
+          '<div class="muted">Статистика по дням (тапни день)</div>'+
+        '</div>'+
       '</div>';
 
-    var head =
-      '<div class="calHead">'+
-        '<h3 style="margin:0">Календарь • 28 дней</h3>'+
-        '<div class="muted">тапни день — детали</div>'+
+    var summary =
+      '<div class="calSum">'+
+        '<span class="pillMini"><span class="dot great"></span> топ: <b>'+great+'</b></span>'+
+        '<span class="pillMini"><span class="dot ok"></span> норм: <b>'+ok+'</b></span>'+
+        '<span class="pillMini"><span class="dot meh"></span> так себе: <b>'+meh+'</b></span>'+
+        '<span class="pillMini"><span class="dot bad"></span> провал: <b>'+bad+'</b></span>'+
+        '<span class="pillMini"><span class="dot rest"></span> отдых: <b>'+rest+'</b></span>'+
       '</div>';
 
     var week =
       '<div class="muted" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:10px;font-weight:900;opacity:.75">'+
         '<div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>'+
-      '</div>';
-
-    var legend =
-      '<div class="legend">'+
-        '<span class="dot great"></span> топ'+
-        '<span class="dot ok"></span> норм'+
-        '<span class="dot meh"></span> так себе'+
-        '<span class="dot bad"></span> провал'+
-        '<span class="dot rest"></span> отдых'+
-        '<span class="dot today"></span> сегодня'+
       '</div>';
 
     $("#panelMain").innerHTML =
@@ -1404,8 +1416,9 @@ function renderCalendar(){
       week+
       '<div class="sep"></div>'+
       '<div class="calGrid">'+cells.join("")+'</div>'+
-      legend;
+      calLegend();
   }
+
 
 function openDay(date){
     ensureLogs();
@@ -2658,6 +2671,8 @@ function totalPending(){
     if(act==="openMenu") return openMenu();
     if(act==="streakInfo") return streakInfo();
     if(act==="pokeBeaver") return pokeBeaver();
+    if(act==="calPrev"){ if(!state.tmp) state.tmp={}; state.tmp.calYM = shiftYM(state.tmp.calYM,-1); save(); setTab("calendar"); return; }
+    if(act==="calNext"){ if(!state.tmp) state.tmp={}; state.tmp.calYM = shiftYM(state.tmp.calYM, 1); save(); setTab("calendar"); return; }
 
     if(act==="goProfile"){ closeModal(); setTab("me"); return; }
     if(act==="collect") return collectAll();
@@ -2698,7 +2713,7 @@ function totalPending(){
       }
       state.tmp.presetSel[idx] = !cur;
       speak("pick");
-      openGuide(state.tmp && state.tmp.gstep!=null ? state.tmp.gstep : 3);
+      openGuide(state.tmp && state.tmp.gstep!=null ? state.tmp.gstep : 0);
       return;
     }
     if(act==="presetAdd"){
